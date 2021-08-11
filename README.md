@@ -1,47 +1,24 @@
 # PRaise
 
-Chrome Extension for giving praise to PRs with one click.
+Chrome Extension for giving praise to GitHub PRs with one click.
 
-## Project Structure
+**Reviews**
 
-* src/typescript: TypeScript source files
-* src/assets: static files
-* dist: Chrome Extension directory
-* dist/js: Generated JavaScript files
+![PRaise Review Demo](./demo-review.gif)
 
-## Setup
+**Comments**
 
-```
-npm install
-```
+![PRaise Copmment Demo](./demo-comment.gif)
 
-## Import as Visual Studio Code project
+## Installation
 
-...
+To use the alpha version please follow the following steps.
 
-## Build
-
-```
-npm run build
-```
-
-## Build in watch mode
-
-### terminal
-
-```
-npm run watch
-```
-
-### Visual Studio Code
-
-Run watch mode.
-
-type `Ctrl + Shift + B`
-
-## Load extension to chrome
-
-Load `dist` directory
-
-## Test
-`npx jest` or `npm run test`
+1. Clone this repo.
+2. `npm install`
+3. `npm run build`
+4. Open Chrome -> Manage Extensions
+5. Enable Developer Mode on the top right
+6. Click on "Load Packed"
+7. Select the `dist` of this project folder.
+8. Happy praising 👏
