@@ -1,5 +1,6 @@
 let praises: [string];
 let prReviews: [string];
+const IGNORE_INPUT = "sentry-ignore-input";
 
 chrome.storage.sync.get(
   {
@@ -33,7 +34,7 @@ function addComment() {
   observer.disconnect();
 
   let gitHubFiles = document.getElementById("files");
-  let textareas = gitHubFiles?.querySelectorAll("textarea") ?? []
+  let textareas = gitHubFiles?.querySelectorAll("textarea") ?? [];
   for (let textarea of textareas) {
     textarea.parentElement
       ?.querySelectorAll(".sentry-pr-praise-button")
@@ -79,13 +80,23 @@ function setText(textarea: HTMLTextAreaElement, comments: string[]) {
     newText = comments[rand];
   } while (textarea.value == newText); // to not have the same text twice
 
+  // Github form validation logic needs the focus and input event
+  textarea.focus();
   textarea.value = newText;
-
-  textarea.dispatchEvent(new ClipboardEvent("paste"));
+  textarea.dispatchEvent(
+    new CustomEvent("input", { detail: { IGNORE_INPUT: true } })
+  );
 }
 
 function toggleButton(textarea: HTMLTextAreaElement, span: HTMLElement) {
-  textarea.addEventListener("input", function () {
+  textarea.addEventListener("input", function (event) {
+    if (event instanceof CustomEvent) {
+      let e = event as CustomEvent;
+      if (e.detail[IGNORE_INPUT]) {
+        return;
+      }
+    }
+
     if (this.value.length > 0) {
       span.style.display = "none";
     } else {
