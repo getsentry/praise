@@ -37,8 +37,7 @@ const Options = () => {
 
   return (
     <>
-      <h1>Options</h1>
-      <h2>Reviews</h2>
+      <h2>Review Praises</h2>
       <TextareaAutosize
         className="textarea"
         onChange={(event) => {
@@ -47,7 +46,7 @@ const Options = () => {
         value={reviews?.join('\n')}
       />
 
-      <h2>Comments</h2>
+      <h2>Comment Praises</h2>
       <TextareaAutosize
         className="textarea"
         onChange={(event) => {
