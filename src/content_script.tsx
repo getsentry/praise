@@ -2,8 +2,7 @@ let commentPraises: [string];
 let reviewPraises: [string];
 
 loadPraises();
-setUpComments()
-setUpReview();
+observeDOMChanges();
 
 function loadPraises() {
   chrome.storage.sync.get(
@@ -18,21 +17,14 @@ function loadPraises() {
   );
 }
 
-function setUpComments() {
+function observeDOMChanges() {
   // When the users adds a PR comment we add the praise button
   let observer = new MutationObserver(function () {
     // To not end up in an endless loop
     observer.disconnect();
 
-    let gitHubFiles = document.getElementById("files");
-    let textareas = gitHubFiles?.querySelectorAll("textarea") ?? [];
-    for (let textarea of textareas) {
-      textarea.parentElement
-        ?.querySelectorAll(".sentry-pr-praise-button")
-        .forEach((e) => e.remove());
-
-      setUpPraiseButton(textarea, () => commentPraises);
-    }
+    setUpComments();
+    setUpReview();
 
     observe();
   });
@@ -40,14 +32,23 @@ function setUpComments() {
   observe();
 
   function observe() {
-    let gitHubFiles = document.getElementById("files");
-    if (gitHubFiles != null) {
-      observer.observe(gitHubFiles, {
-        attributes: false,
-        childList: true,
-        subtree: true,
-      });
-    }
+    observer.observe(document, {
+      attributes: false,
+      childList: true,
+      subtree: true,
+    });
+  }
+}
+
+function setUpComments() {
+  let gitHubFiles = document.getElementById("files");
+  let textareas = gitHubFiles?.querySelectorAll("textarea") ?? [];
+  for (let textarea of textareas) {
+    textarea.parentElement
+      ?.querySelectorAll(".sentry-pr-praise-button")
+      .forEach((e) => e.remove());
+
+    setUpPraiseButton(textarea, () => commentPraises);
   }
 }
 
