@@ -10,7 +10,9 @@ let defaultComments = ["This is awesome 👏 ",
   "🏆 Developer of the year 🏆",
   "This code makes my day ☀️",
   "You rock 🎸. Thanks.",
-  "🌮  to you!"]
+  "🌮  to you!", 
+  "Oh yeah 💪"
+]
 
 chrome.runtime.onInstalled.addListener(function() {
   console.log("installed")
