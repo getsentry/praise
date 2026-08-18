@@ -21,7 +21,7 @@
 - **`class*=` and `:where()` selectors do work in jsdom**, so `selectors.ts` needs no changes to be testable.
 - **Behaviour must not change.** Task 1 is a pure refactor. Do not fix, improve, or restyle the placement logic while moving it — if you spot a genuine bug, note it and keep going.
 - **Naming:** the button class is `sentry-pr-praise-button`, the label is `PR`, the anchor caption is `Cancel`. Exact strings.
-- **Style:** run `npm run style` (Prettier) before each commit. Match the existing comment voice in `src/lib/selectors.ts` — explain *why*, use `--` for asides, avoid restating the code.
+- **Style:** run `npm run style` (Prettier) before each commit. Match the existing comment voice in `src/lib/selectors.ts` — explain _why_, use `--` for asides, avoid restating the code.
 - **Commit messages:** imperative mood, capitalized, no type prefix — matching this repo's history (`Scope praise button to review and diff comments`, `Add MIT LICENSE file`). Do **not** use Conventional Commits.
 
 ---
@@ -32,7 +32,7 @@ Tasks 3–6 test against HTML captured from a **real, logged-in GitHub PR page**
 
 **Task 3 therefore builds synthetic fixtures and labels them as such**, and Task 7 documents how a maintainer replaces them. The spec is blunt about the cost, and so should you be: a synthetic fixture tests our logic against our own assumptions, so it cannot reveal that a selector was wrong in the first place. Do not describe the suite as validating against real GitHub markup until real captures land.
 
-If real captures *are* already present in `test/fixtures/` when you start, use them and skip the synthetic generation in Task 3.
+If real captures _are_ already present in `test/fixtures/` when you start, use them and skip the synthetic generation in Task 3.
 
 ---
 
@@ -40,25 +40,25 @@ If real captures *are* already present in `test/fixtures/` when you start, use t
 
 **Created:**
 
-| Path | Responsibility |
-|---|---|
-| `src/lib/praise-button.ts` | Button placement, construction, praise-setting, hide-on-typing. Pure DOM; no `chrome.*`, no observer, no top-level side effects. |
-| `src/lib/test-support/execCommand.ts` | Installs a jsdom `execCommand('insertText')` stub so `setFieldText` works. |
-| `src/lib/test-support/chrome.ts` | Minimal `chrome.storage` stub. |
-| `src/lib/test-support/fixtures.ts` | Loads a fixture HTML file into the jsdom document. |
-| `test/fixtures/review-dialog.html` | PR page with the "Finish your review" dialog open. |
-| `test/fixtures/diff-comment.html` | PR page with an inline diff comment editor open. |
-| `test/fixtures/README.md` | Provenance of each fixture and the capture/sanitize procedure. |
-| `src/lib/selectors.test.ts` | Layer 1: selector matching, `praiseContext`, `findInsertionPoint`. |
-| `src/lib/praise-button.test.ts` | Layer 2: injection, duplicate suppression, click, hide-on-typing. |
+| Path                                  | Responsibility                                                                                                                   |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/praise-button.ts`            | Button placement, construction, praise-setting, hide-on-typing. Pure DOM; no `chrome.*`, no observer, no top-level side effects. |
+| `src/lib/test-support/execCommand.ts` | Installs a jsdom `execCommand('insertText')` stub so `setFieldText` works.                                                       |
+| `src/lib/test-support/chrome.ts`      | Minimal `chrome.storage` stub.                                                                                                   |
+| `src/lib/test-support/fixtures.ts`    | Loads a fixture HTML file into the jsdom document.                                                                               |
+| `test/fixtures/review-dialog.html`    | PR page with the "Finish your review" dialog open.                                                                               |
+| `test/fixtures/diff-comment.html`     | PR page with an inline diff comment editor open.                                                                                 |
+| `test/fixtures/README.md`             | Provenance of each fixture and the capture/sanitize procedure.                                                                   |
+| `src/lib/selectors.test.ts`           | Layer 1: selector matching, `praiseContext`, `findInsertionPoint`.                                                               |
+| `src/lib/praise-button.test.ts`       | Layer 2: injection, duplicate suppression, click, hide-on-typing.                                                                |
 
 **Modified:**
 
-| Path | Change |
-|---|---|
+| Path                           | Change                                                                                                                              |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `src/content_script.tsx:1-270` | Keep storage/navigation/observer wiring (lines 1–109); move placement logic (lines 110–270) to `praise-button.ts` and call into it. |
-| `jest.config.js` | Add `testEnvironment: "jsdom"`; add `test` to `roots`. |
-| `package.json` | Add `jest-environment-jsdom` devDependency. |
+| `jest.config.js`               | Add `testEnvironment: "jsdom"`; add `test` to `roots`.                                                                              |
+| `package.json`                 | Add `jest-environment-jsdom` devDependency.                                                                                         |
 
 **Deleted:** `src/__tests__/sum.ts` — two empty test bodies that assert nothing.
 
@@ -69,21 +69,21 @@ If real captures *are* already present in `test/fixtures/` when you start, use t
 Pure refactor. No test is written here — the module is currently untestable, which is the entire reason for this task; Tasks 4–6 test it. The gate for this task is `npm run build` plus manual verification in Chrome.
 
 **Files:**
+
 - Create: `src/lib/praise-button.ts`
 - Modify: `src/content_script.tsx:1-270`
 
 **Interfaces:**
+
 - Consumes: `findInsertionPoint`, `markdownTextarea`, `praiseContext` from `./selectors` (unchanged).
 - Produces:
+
   ```typescript
-  export const buttonClass = "sentry-pr-praise-button";
-  export type PraiseSource = (context: "reviews" | "comments") => string[];
-  export function addPraiseButton(
-    textarea: HTMLTextAreaElement,
-    getPraises: PraiseSource,
-    attempt?: number,
-  ): void;
+  export const buttonClass = 'sentry-pr-praise-button';
+  export type PraiseSource = (context: 'reviews' | 'comments') => string[];
+  export function addPraiseButton(textarea: HTMLTextAreaElement, getPraises: PraiseSource, attempt?: number): void;
   ```
+
   `getPraises` is called at click time, not at decoration time, so edits made in the options page take effect without re-rendering the editor. Tasks 4–6 depend on these exact names and this signature.
 
 - [ ] **Step 1: Create `src/lib/praise-button.ts` with the moved code**
@@ -93,8 +93,8 @@ Move `buttonClass` (line 9), `lastWritten` (lines 14–22, with its comment), `d
 Add at the top:
 
 ```typescript
-import { setFieldText } from "text-field-edit";
-import { findInsertionPoint, praiseContext } from "./selectors";
+import { setFieldText } from 'text-field-edit';
+import { findInsertionPoint, praiseContext } from './selectors';
 ```
 
 Export `buttonClass`, and add the module docstring plus the injection type:
@@ -115,7 +115,7 @@ Export `buttonClass`, and add the module docstring plus the injection type:
  * that already exist -- the content script closes over its own mutable state,
  * and tests pass a literal.
  */
-export type PraiseSource = (context: "reviews" | "comments") => string[];
+export type PraiseSource = (context: 'reviews' | 'comments') => string[];
 ```
 
 Change `addPraiseButton`'s signature and the two places inside it that used module-level state:
@@ -131,18 +131,18 @@ export function addPraiseButton(
 Its recursive retry call becomes:
 
 ```typescript
-      setTimeout(() => {
-        addPraiseButton(textarea, getPraises, attempt + 1);
-      }, 100);
+setTimeout(() => {
+  addPraiseButton(textarea, getPraises, attempt + 1);
+}, 100);
 ```
 
 And the praise lookup — replacing the old `context === "reviews" ? () => reviewPraises : () => commentPraises` line — becomes:
 
 ```typescript
-  const button = createButton(before);
-  button.addEventListener("click", () => {
-    setPraise(textarea, getPraises(context));
-  });
+const button = createButton(before);
+button.addEventListener('click', () => {
+  setPraise(textarea, getPraises(context));
+});
 ```
 
 Keep `createButton`, `setPraise`, and `toggleButton` unexported — they are internal to this module. Do not otherwise alter any logic: the retry cap of 20, the depth limit, the `decorated` bookkeeping, and the `lastWritten` comparison all stay exactly as they are.
@@ -152,16 +152,15 @@ Keep `createButton`, `setPraise`, and `toggleButton` unexported — they are int
 The file keeps its storage wiring, navigation watching, and observer setup and loses the placement logic. Full new contents:
 
 ```typescript
-import observe from "./lib/selector-observer";
-import { addPraiseButton, type PraiseSource } from "./lib/praise-button";
-import { markdownTextarea } from "./lib/selectors";
+import observe from './lib/selector-observer';
+import { addPraiseButton, type PraiseSource } from './lib/praise-button';
+import { markdownTextarea } from './lib/selectors';
 
 let commentPraises: string[] = [];
 let reviewPraises: string[] = [];
 
 /** Read at click time, so options-page edits reach existing buttons. */
-const getPraises: PraiseSource = (context) =>
-  context === "reviews" ? reviewPraises : commentPraises;
+const getPraises: PraiseSource = context => (context === 'reviews' ? reviewPraises : commentPraises);
 
 loadPraises();
 watchPraises();
@@ -184,7 +183,7 @@ function loadPraises(): void {
 /** Picks up edits made in the options page without needing a reload. */
 function watchPraises(): void {
   chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName !== "sync") {
+    if (areaName !== 'sync') {
       return;
     }
 
@@ -199,9 +198,7 @@ function watchPraises(): void {
 
 /** `chrome.storage` values are untyped, so verify the shape before using it. */
 function toPraises(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === "string")
-    : [];
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }
 
 let observerController: AbortController | undefined;
@@ -219,7 +216,7 @@ function setUpObserver(): void {
 
   observe(
     markdownTextarea,
-    (element) => {
+    element => {
       addPraiseButton(element as HTMLTextAreaElement, getPraises);
     },
     { signal: observerController.signal },
@@ -233,13 +230,7 @@ function setUpObserver(): void {
  * `pjax:*` is gone from GitHub's current bundles; `soft-nav:*` replaced it.
  */
 function watchNavigation(): void {
-  for (const event of [
-    "soft-nav:payload",
-    "soft-nav:end",
-    "turbo:load",
-    "statechange",
-    "popstate",
-  ]) {
+  for (const event of ['soft-nav:payload', 'soft-nav:end', 'turbo:load', 'statechange', 'popstate']) {
     window.addEventListener(event, () => {
       setUpObserver();
     });
@@ -280,21 +271,21 @@ git commit -m "Extract praise button placement into its own module"
 Sets up the harness Tasks 3–6 need. The `execCommand` stub is the load-bearing piece: without it every `setPraise` test throws.
 
 **Files:**
+
 - Create: `src/lib/test-support/execCommand.ts`, `src/lib/test-support/chrome.ts`
 - Modify: `jest.config.js`, `package.json`
 - Delete: `src/__tests__/sum.ts`
 - Test: `src/lib/test-support/execCommand.test.ts`
 
 **Interfaces:**
+
 - Produces:
+
   ```typescript
   // execCommand.ts
   export function installExecCommand(): void;
   // chrome.ts
-  export function installChromeStub(praises?: {
-    reviews?: string[];
-    comments?: string[];
-  }): void;
+  export function installChromeStub(praises?: { reviews?: string[]; comments?: string[] }): void;
   ```
 
 - [ ] **Step 1: Install the jsdom environment and configure Jest**
@@ -307,14 +298,17 @@ Then rewrite `jest.config.js` — `roots` gains `test` so fixture files resolve 
 
 ```javascript
 module.exports = {
-    roots: ["src", "test"],
-    // The extension is all DOM work, and Jest 30 no longer bundles jsdom.
-    testEnvironment: "jsdom",
-    transform: {
-        "^.+\\.tsx?$": ["@swc/jest", {
-            jsc: { parser: { syntax: "typescript", tsx: true } },
-        }],
-    },
+  roots: ['src', 'test'],
+  // The extension is all DOM work, and Jest 30 no longer bundles jsdom.
+  testEnvironment: 'jsdom',
+  transform: {
+    '^.+\\.tsx?$': [
+      '@swc/jest',
+      {
+        jsc: { parser: { syntax: 'typescript', tsx: true } },
+      },
+    ],
+  },
 };
 ```
 
@@ -329,32 +323,32 @@ git rm src/__tests__/sum.ts
 Create `src/lib/test-support/execCommand.test.ts`:
 
 ```typescript
-import { setFieldText } from "text-field-edit";
-import { installExecCommand } from "./execCommand";
+import { setFieldText } from 'text-field-edit';
+import { installExecCommand } from './execCommand';
 
 /**
  * `setFieldText` is how we write into React-controlled textareas, so if the stub
  * is wrong every placement test fails for an unrelated-looking reason.
  */
-test("setFieldText replaces the value and fires input, repeatably", () => {
+test('setFieldText replaces the value and fires input, repeatably', () => {
   installExecCommand();
 
-  const textarea = document.createElement("textarea");
+  const textarea = document.createElement('textarea');
   document.body.append(textarea);
 
   let inputEvents = 0;
-  textarea.addEventListener("input", () => {
+  textarea.addEventListener('input', () => {
     inputEvents++;
   });
 
   textarea.focus();
-  setFieldText(textarea, "Nice work!");
-  expect(textarea.value).toBe("Nice work!");
+  setFieldText(textarea, 'Nice work!');
+  expect(textarea.value).toBe('Nice work!');
   expect(inputEvents).toBe(1);
 
   // Clicking the button a second time must replace, not append.
-  setFieldText(textarea, "Great catch!");
-  expect(textarea.value).toBe("Great catch!");
+  setFieldText(textarea, 'Great catch!');
+  expect(textarea.value).toBe('Great catch!');
   expect(inputEvents).toBe(2);
 });
 ```
@@ -378,33 +372,24 @@ Create `src/lib/test-support/execCommand.ts`:
  * does, and it is what React's own change tracking listens for.
  */
 export function installExecCommand(): void {
-  document.execCommand = (
-    command: string,
-    _showUi?: boolean,
-    value?: string,
-  ): boolean => {
-    if (command !== "insertText") {
+  document.execCommand = (command: string, _showUi?: boolean, value?: string): boolean => {
+    if (command !== 'insertText') {
       return false;
     }
 
     const element = document.activeElement;
-    if (
-      !(
-        element instanceof HTMLTextAreaElement ||
-        element instanceof HTMLInputElement
-      )
-    ) {
+    if (!(element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement)) {
       return false;
     }
 
     const start = element.selectionStart ?? element.value.length;
     const end = element.selectionEnd ?? element.value.length;
-    element.setRangeText(value ?? "", start, end, "end");
+    element.setRangeText(value ?? '', start, end, 'end');
     element.dispatchEvent(
-      new InputEvent("input", {
+      new InputEvent('input', {
         bubbles: true,
-        inputType: "insertText",
-        data: value ?? "",
+        inputType: 'insertText',
+        data: value ?? '',
       }),
     );
 
@@ -432,9 +417,7 @@ Create `src/lib/test-support/chrome.ts`. Nothing in Tasks 3–6 imports `content
  * merged with our values, and an `onChanged` listener registry that records
  * without dispatching.
  */
-export function installChromeStub(
-  praises: { reviews?: string[]; comments?: string[] } = {},
-): void {
+export function installChromeStub(praises: { reviews?: string[]; comments?: string[] } = {}): void {
   const stored = {
     reviews: praises.reviews ?? [],
     comments: praises.comments ?? [],
@@ -443,10 +426,7 @@ export function installChromeStub(
   (globalThis as unknown as { chrome: unknown }).chrome = {
     storage: {
       sync: {
-        get: (
-          _defaults: unknown,
-          callback: (items: typeof stored) => void,
-        ): void => {
+        get: (_defaults: unknown, callback: (items: typeof stored) => void): void => {
           callback(stored);
         },
       },
@@ -477,15 +457,19 @@ git commit -m "Set up jsdom test environment with an execCommand stub"
 ### Task 3: Fixtures and loader
 
 **Files:**
+
 - Create: `test/fixtures/review-dialog.html`, `test/fixtures/diff-comment.html`, `src/lib/test-support/fixtures.ts`
 - Test: `src/lib/test-support/fixtures.test.ts`
 
 **Interfaces:**
+
 - Produces:
+
   ```typescript
-  export type FixtureName = "review-dialog" | "diff-comment";
+  export type FixtureName = 'review-dialog' | 'diff-comment';
   export function loadFixture(name: FixtureName): void;
   ```
+
   `loadFixture` replaces the current document's contents. Tasks 4–6 call it in `beforeEach`.
 
 - [ ] **Step 1: Write the failing test for the loader**
@@ -493,32 +477,24 @@ git commit -m "Set up jsdom test environment with an execCommand stub"
 Create `src/lib/test-support/fixtures.test.ts`:
 
 ```typescript
-import { loadFixture } from "./fixtures";
+import { loadFixture } from './fixtures';
 
-test("review-dialog fixture has a dialog containing a textarea and Cancel", () => {
-  loadFixture("review-dialog");
+test('review-dialog fixture has a dialog containing a textarea and Cancel', () => {
+  loadFixture('review-dialog');
 
   const dialog = document.querySelector('[role="dialog"]');
   expect(dialog).not.toBeNull();
-  expect(dialog!.querySelector("textarea")).not.toBeNull();
-  expect(
-    [...dialog!.querySelectorAll("button")].map((button) =>
-      button.textContent?.trim(),
-    ),
-  ).toContain("Cancel");
+  expect(dialog!.querySelector('textarea')).not.toBeNull();
+  expect([...dialog!.querySelectorAll('button')].map(button => button.textContent?.trim())).toContain('Cancel');
 });
 
-test("diff-comment fixture has an editor containing a textarea and Cancel", () => {
-  loadFixture("diff-comment");
+test('diff-comment fixture has an editor containing a textarea and Cancel', () => {
+  loadFixture('diff-comment');
 
   const editor = document.querySelector('div[class*="AddCommentEditor"]');
   expect(editor).not.toBeNull();
-  expect(editor!.querySelector("textarea")).not.toBeNull();
-  expect(
-    [...editor!.querySelectorAll("button")].map((button) =>
-      button.textContent?.trim(),
-    ),
-  ).toContain("Cancel");
+  expect(editor!.querySelector('textarea')).not.toBeNull();
+  expect([...editor!.querySelectorAll('button')].map(button => button.textContent?.trim())).toContain('Cancel');
 });
 ```
 
@@ -532,10 +508,10 @@ Expected: FAIL — `Cannot find module './fixtures'`.
 Create `src/lib/test-support/fixtures.ts`:
 
 ```typescript
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
-export type FixtureName = "review-dialog" | "diff-comment";
+export type FixtureName = 'review-dialog' | 'diff-comment';
 
 /**
  * Replaces the document with a captured GitHub page.
@@ -546,10 +522,7 @@ export type FixtureName = "review-dialog" | "diff-comment";
  * modules holding a reference to it stay valid.
  */
 export function loadFixture(name: FixtureName): void {
-  const html = readFileSync(
-    join(__dirname, "../../../test/fixtures", `${name}.html`),
-    "utf8",
-  );
+  const html = readFileSync(join(__dirname, '../../../test/fixtures', `${name}.html`), 'utf8');
 
   const body = /<body[^>]*>([\s\S]*)<\/body>/i.exec(html);
   document.documentElement.innerHTML = `<head></head><body>${body ? body[1] : html}</body>`;
@@ -582,12 +555,7 @@ Otherwise write synthetic fixtures reproducing the structure documented in `src/
         placeholder="Leave a comment"
       ></textarea>
 
-      <div
-        data-component="Dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Finish your review"
-      >
+      <div data-component="Dialog" role="dialog" aria-modal="true" aria-label="Finish your review">
         <div data-component="Dialog.Header">
           <button type="button" aria-label="Close">
             <span data-component="leadingVisual"></span>
@@ -595,10 +563,7 @@ Otherwise write synthetic fixtures reproducing the structure documented in `src/
         </div>
         <div data-component="Dialog.Body">
           <div class="MarkdownEditor-module__container__d4e5f">
-            <textarea
-              class="MarkdownInput-module__textArea__a1b2c"
-              placeholder="Leave a comment"
-            ></textarea>
+            <textarea class="MarkdownInput-module__textArea__a1b2c" placeholder="Leave a comment"></textarea>
           </div>
         </div>
         <div class="ReviewMenuFooter-module__Footer__g6h7i">
@@ -606,11 +571,7 @@ Otherwise write synthetic fixtures reproducing the structure documented in `src/
             <button type="button" class="Button-module__button__m0n1o">
               <span data-component="text">Cancel</span>
             </button>
-            <button
-              type="submit"
-              class="ReviewMenuFooter-module__SubmitReviewButton__p2q3r"
-              data-variant="primary"
-            >
+            <button type="submit" class="ReviewMenuFooter-module__SubmitReviewButton__p2q3r" data-variant="primary">
               <span data-component="text">Submit review</span>
             </button>
           </div>
@@ -621,7 +582,7 @@ Otherwise write synthetic fixtures reproducing the structure documented in `src/
 </html>
 ```
 
-`test/fixtures/diff-comment.html`. Two editors, deliberately: `findInsertionPoint()` must take each editor's *own* Cancel, and a single-editor fixture cannot catch a walk that climbs into its neighbour. The page-level "Submit review" button outside both editors guards the boundary check.
+`test/fixtures/diff-comment.html`. Two editors, deliberately: `findInsertionPoint()` must take each editor's _own_ Cancel, and a single-editor fixture cannot catch a walk that climbs into its neighbour. The page-level "Submit review" button outside both editors guards the boundary check.
 
 ```html
 <!--
@@ -645,20 +606,13 @@ Otherwise write synthetic fixtures reproducing the structure documented in `src/
       <div class="DiffLine-module__row__s4t5u" data-line="12">
         <div class="AddCommentEditor-module__container__v6w7x" data-editor="1">
           <div class="MarkdownEditor-module__container__d4e5f">
-            <textarea
-              class="MarkdownInput-module__textArea__a1b2c"
-              placeholder="Leave a comment"
-            ></textarea>
+            <textarea class="MarkdownInput-module__textArea__a1b2c" placeholder="Leave a comment"></textarea>
           </div>
           <div class="AddCommentEditor-module__buttonRow__y8z9a">
             <button type="button" class="Button-module__button__m0n1o">
               <span data-component="text">Cancel</span>
             </button>
-            <button
-              type="button"
-              class="Button-module__button__m0n1o"
-              data-variant="primary"
-            >
+            <button type="button" class="Button-module__button__m0n1o" data-variant="primary">
               <span data-component="text">Add single comment</span>
             </button>
           </div>
@@ -668,20 +622,13 @@ Otherwise write synthetic fixtures reproducing the structure documented in `src/
       <div class="DiffLine-module__row__s4t5u" data-line="34">
         <div class="AddCommentEditor-module__container__v6w7x" data-editor="2">
           <div class="MarkdownEditor-module__container__d4e5f">
-            <textarea
-              class="MarkdownInput-module__textArea__a1b2c"
-              placeholder="Leave a comment"
-            ></textarea>
+            <textarea class="MarkdownInput-module__textArea__a1b2c" placeholder="Leave a comment"></textarea>
           </div>
           <div class="AddCommentEditor-module__buttonRow__y8z9a">
             <button type="button" class="Button-module__button__m0n1o">
               <span data-component="text">Cancel</span>
             </button>
-            <button
-              type="button"
-              class="Button-module__button__m0n1o"
-              data-variant="primary"
-            >
+            <button type="button" class="Button-module__button__m0n1o" data-variant="primary">
               <span data-component="text">Add single comment</span>
             </button>
           </div>
@@ -710,9 +657,11 @@ git commit -m "Add PR page fixtures and a fixture loader"
 ### Task 4: Layer 1 — selector and insertion point tests
 
 **Files:**
+
 - Test: `src/lib/selectors.test.ts`
 
 **Interfaces:**
+
 - Consumes: `loadFixture` from `./test-support/fixtures` (Task 3); `markdownTextarea`, `reviewDialog`, `diffCommentEditor`, `praiseContext`, `findInsertionPoint` from `./selectors` (existing, unchanged).
 
 - [ ] **Step 1: Write the failing tests**
@@ -720,99 +669,79 @@ git commit -m "Add PR page fixtures and a fixture loader"
 Create `src/lib/selectors.test.ts`:
 
 ```typescript
-import { loadFixture } from "./test-support/fixtures";
-import {
-  diffCommentEditor,
-  findInsertionPoint,
-  markdownTextarea,
-  praiseContext,
-  reviewDialog,
-} from "./selectors";
+import { loadFixture } from './test-support/fixtures';
+import { diffCommentEditor, findInsertionPoint, markdownTextarea, praiseContext, reviewDialog } from './selectors';
 
 /** The caption `findInsertionPoint` anchors to, and the one we assert against. */
 function label(element: Element | null | undefined): string {
-  return (element?.textContent ?? "").replace(/\s+/g, " ").trim();
+  return (element?.textContent ?? '').replace(/\s+/g, ' ').trim();
 }
 
-describe("review dialog", () => {
+describe('review dialog', () => {
   beforeEach(() => {
-    loadFixture("review-dialog");
+    loadFixture('review-dialog');
   });
 
-  test("the dialog selectors find the dialog", () => {
-    expect(document.querySelectorAll(reviewDialog.join(",")).length).toBe(1);
+  test('the dialog selectors find the dialog', () => {
+    expect(document.querySelectorAll(reviewDialog.join(',')).length).toBe(1);
   });
 
-  test("the textarea selectors find both editors on the page", () => {
+  test('the textarea selectors find both editors on the page', () => {
     // Deliberately broad -- these match every markdown editor, which is why
     // praiseContext() has to do the filtering.
-    expect(document.querySelectorAll(markdownTextarea.join(",")).length).toBe(2);
+    expect(document.querySelectorAll(markdownTextarea.join(',')).length).toBe(2);
   });
 
-  test("the dialog textarea is a review", () => {
-    const textarea = document.querySelector<HTMLTextAreaElement>(
-      '[role="dialog"] textarea',
-    )!;
-    expect(praiseContext(textarea)).toBe("reviews");
+  test('the dialog textarea is a review', () => {
+    const textarea = document.querySelector<HTMLTextAreaElement>('[role="dialog"] textarea')!;
+    expect(praiseContext(textarea)).toBe('reviews');
   });
 
-  test("a textarea outside the dialog is left alone", () => {
-    const textarea =
-      document.querySelector<HTMLTextAreaElement>("#praise-decoy")!;
+  test('a textarea outside the dialog is left alone', () => {
+    const textarea = document.querySelector<HTMLTextAreaElement>('#praise-decoy')!;
     expect(praiseContext(textarea)).toBeUndefined();
   });
 
   test("the insertion point is the row holding the dialog's Cancel", () => {
-    const textarea = document.querySelector<HTMLTextAreaElement>(
-      '[role="dialog"] textarea',
-    )!;
+    const textarea = document.querySelector<HTMLTextAreaElement>('[role="dialog"] textarea')!;
 
     const insertionPoint = findInsertionPoint(textarea);
 
     expect(insertionPoint).toBeDefined();
-    expect(label(insertionPoint!.before)).toBe("Cancel");
+    expect(label(insertionPoint!.before)).toBe('Cancel');
     // The row, not the flex column above it: inserting into the column is what
     // put the button below the textarea at full width.
     expect(insertionPoint!.row).toBe(insertionPoint!.before.parentElement);
-    expect(label(insertionPoint!.row)).toContain("Submit review");
+    expect(label(insertionPoint!.row)).toContain('Submit review');
   });
 });
 
-describe("diff comment editor", () => {
+describe('diff comment editor', () => {
   beforeEach(() => {
-    loadFixture("diff-comment");
+    loadFixture('diff-comment');
   });
 
-  test("the editor selectors find both editors", () => {
-    expect(document.querySelectorAll(diffCommentEditor.join(",")).length).toBe(
-      2,
-    );
+  test('the editor selectors find both editors', () => {
+    expect(document.querySelectorAll(diffCommentEditor.join(',')).length).toBe(2);
   });
 
-  test("a diff textarea is a comment", () => {
-    const textarea = document.querySelector<HTMLTextAreaElement>(
-      '[data-editor="1"] textarea',
-    )!;
-    expect(praiseContext(textarea)).toBe("comments");
+  test('a diff textarea is a comment', () => {
+    const textarea = document.querySelector<HTMLTextAreaElement>('[data-editor="1"] textarea')!;
+    expect(praiseContext(textarea)).toBe('comments');
   });
 
-  test.each([["1"], ["2"]])(
-    "editor %s anchors to its own Cancel, not its neighbour's",
-    (editor) => {
-      const container = document.querySelector<HTMLElement>(
-        `[data-editor="${editor}"]`,
-      )!;
-      const textarea = container.querySelector<HTMLTextAreaElement>("textarea")!;
+  test.each([['1'], ['2']])("editor %s anchors to its own Cancel, not its neighbour's", editor => {
+    const container = document.querySelector<HTMLElement>(`[data-editor="${editor}"]`)!;
+    const textarea = container.querySelector<HTMLTextAreaElement>('textarea')!;
 
-      const insertionPoint = findInsertionPoint(textarea);
+    const insertionPoint = findInsertionPoint(textarea);
 
-      expect(insertionPoint).toBeDefined();
-      expect(label(insertionPoint!.before)).toBe("Cancel");
-      // The real regression risk: climbing out and taking the other editor's
-      // button, or the diff toolbar's page-level "Submit review".
-      expect(container.contains(insertionPoint!.before)).toBe(true);
-    },
-  );
+    expect(insertionPoint).toBeDefined();
+    expect(label(insertionPoint!.before)).toBe('Cancel');
+    // The real regression risk: climbing out and taking the other editor's
+    // button, or the diff toolbar's page-level "Submit review".
+    expect(container.contains(insertionPoint!.before)).toBe(true);
+  });
 });
 ```
 
@@ -836,9 +765,11 @@ git commit -m "Test selector matching and insertion point resolution"
 ### Task 5: Layer 2 — button injection
 
 **Files:**
+
 - Test: `src/lib/praise-button.test.ts`
 
 **Interfaces:**
+
 - Consumes: `addPraiseButton`, `buttonClass`, `PraiseSource` from `./praise-button` (Task 1); `installExecCommand` (Task 2); `loadFixture` (Task 3).
 
 - [ ] **Step 1: Write the failing tests**
@@ -846,18 +777,17 @@ git commit -m "Test selector matching and insertion point resolution"
 Create `src/lib/praise-button.test.ts`:
 
 ```typescript
-import { addPraiseButton, buttonClass, type PraiseSource } from "./praise-button";
-import { installExecCommand } from "./test-support/execCommand";
-import { loadFixture } from "./test-support/fixtures";
+import { addPraiseButton, buttonClass, type PraiseSource } from './praise-button';
+import { installExecCommand } from './test-support/execCommand';
+import { loadFixture } from './test-support/fixtures';
 
-const reviewPraises = ["Great review!", "Sharp eye!"];
-const commentPraises = ["Nice work!", "Good call!"];
+const reviewPraises = ['Great review!', 'Sharp eye!'];
+const commentPraises = ['Nice work!', 'Good call!'];
 
-const praises: PraiseSource = (context) =>
-  context === "reviews" ? reviewPraises : commentPraises;
+const praises: PraiseSource = context => (context === 'reviews' ? reviewPraises : commentPraises);
 
 function label(element: Element | null | undefined): string {
-  return (element?.textContent ?? "").replace(/\s+/g, " ").trim();
+  return (element?.textContent ?? '').replace(/\s+/g, ' ').trim();
 }
 
 function buttons(scope: ParentNode = document): HTMLElement[] {
@@ -868,26 +798,24 @@ beforeEach(() => {
   installExecCommand();
 });
 
-describe("in the review dialog", () => {
+describe('in the review dialog', () => {
   let textarea: HTMLTextAreaElement;
 
   beforeEach(() => {
-    loadFixture("review-dialog");
-    textarea = document.querySelector<HTMLTextAreaElement>(
-      '[role="dialog"] textarea',
-    )!;
+    loadFixture('review-dialog');
+    textarea = document.querySelector<HTMLTextAreaElement>('[role="dialog"] textarea')!;
   });
 
-  test("one button is added, immediately before Cancel", () => {
+  test('one button is added, immediately before Cancel', () => {
     addPraiseButton(textarea, praises);
 
     expect(buttons()).toHaveLength(1);
     const button = buttons()[0];
-    expect(label(button)).toBe("PR");
-    expect(label(button.nextElementSibling)).toBe("Cancel");
+    expect(label(button)).toBe('PR');
+    expect(label(button.nextElementSibling)).toBe('Cancel');
   });
 
-  test("re-decorating the same textarea does not add a second button", () => {
+  test('re-decorating the same textarea does not add a second button', () => {
     // React re-renders constantly, so this path is hit in normal use.
     addPraiseButton(textarea, praises);
     addPraiseButton(textarea, praises);
@@ -895,16 +823,15 @@ describe("in the review dialog", () => {
     expect(buttons()).toHaveLength(1);
   });
 
-  test("clicking fills the textarea from the reviews list", () => {
+  test('clicking fills the textarea from the reviews list', () => {
     addPraiseButton(textarea, praises);
     buttons()[0].click();
 
     expect(reviewPraises).toContain(textarea.value);
   });
 
-  test("a textarea outside the dialog gets no button", () => {
-    const decoy =
-      document.querySelector<HTMLTextAreaElement>("#praise-decoy")!;
+  test('a textarea outside the dialog gets no button', () => {
+    const decoy = document.querySelector<HTMLTextAreaElement>('#praise-decoy')!;
 
     addPraiseButton(decoy, praises);
 
@@ -912,32 +839,32 @@ describe("in the review dialog", () => {
   });
 });
 
-describe("in a diff comment editor", () => {
+describe('in a diff comment editor', () => {
   let container: HTMLElement;
   let textarea: HTMLTextAreaElement;
 
   beforeEach(() => {
-    loadFixture("diff-comment");
+    loadFixture('diff-comment');
     container = document.querySelector<HTMLElement>('[data-editor="1"]')!;
-    textarea = container.querySelector<HTMLTextAreaElement>("textarea")!;
+    textarea = container.querySelector<HTMLTextAreaElement>('textarea')!;
   });
 
-  test("the button lands in the editor it belongs to", () => {
+  test('the button lands in the editor it belongs to', () => {
     addPraiseButton(textarea, praises);
 
     expect(buttons()).toHaveLength(1);
     expect(container.contains(buttons()[0])).toBe(true);
-    expect(label(buttons()[0].nextElementSibling)).toBe("Cancel");
+    expect(label(buttons()[0].nextElementSibling)).toBe('Cancel');
   });
 
-  test("clicking fills the textarea from the comments list", () => {
+  test('clicking fills the textarea from the comments list', () => {
     addPraiseButton(textarea, praises);
     buttons()[0].click();
 
     expect(commentPraises).toContain(textarea.value);
   });
 
-  test("decorating one editor leaves the other untouched", () => {
+  test('decorating one editor leaves the other untouched', () => {
     addPraiseButton(textarea, praises);
 
     const other = document.querySelector<HTMLElement>('[data-editor="2"]')!;
@@ -970,9 +897,11 @@ git commit -m "Test praise button injection and placement"
 Split from Task 5 because these test the write path — `setPraise` and `toggleButton` — rather than placement. A reviewer could reasonably accept the placement tests and reject these.
 
 **Files:**
+
 - Modify: `src/lib/praise-button.test.ts` (append)
 
 **Interfaces:**
+
 - Consumes: everything Task 5 consumes. No new exports.
 
 - [ ] **Step 1: Append the failing tests**
@@ -980,18 +909,16 @@ Split from Task 5 because these test the write path — `setPraise` and `toggleB
 Add to the end of `src/lib/praise-button.test.ts`:
 
 ```typescript
-describe("writing praises", () => {
+describe('writing praises', () => {
   let textarea: HTMLTextAreaElement;
 
   beforeEach(() => {
-    loadFixture("diff-comment");
-    textarea = document.querySelector<HTMLTextAreaElement>(
-      '[data-editor="1"] textarea',
-    )!;
+    loadFixture('diff-comment');
+    textarea = document.querySelector<HTMLTextAreaElement>('[data-editor="1"] textarea')!;
     addPraiseButton(textarea, praises);
   });
 
-  test("clicking again can produce a different praise", () => {
+  test('clicking again can produce a different praise', () => {
     const button = buttons()[0];
 
     button.click();
@@ -1005,7 +932,7 @@ describe("writing praises", () => {
     expect(commentPraises).toContain(textarea.value);
   });
 
-  test("our own write leaves the button visible", () => {
+  test('our own write leaves the button visible', () => {
     const button = buttons()[0];
 
     button.click();
@@ -1015,36 +942,34 @@ describe("writing praises", () => {
     expect(button.hidden).toBe(false);
   });
 
-  test("typing manually hides the button", () => {
+  test('typing manually hides the button', () => {
     const button = buttons()[0];
 
-    textarea.value = "I typed this myself";
-    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    textarea.value = 'I typed this myself';
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
 
     expect(button.hidden).toBe(true);
   });
 
-  test("clearing the field brings the button back", () => {
+  test('clearing the field brings the button back', () => {
     const button = buttons()[0];
 
-    textarea.value = "typed";
-    textarea.dispatchEvent(new Event("input", { bubbles: true }));
-    textarea.value = "";
-    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    textarea.value = 'typed';
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    textarea.value = '';
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
 
     expect(button.hidden).toBe(false);
   });
 
-  test("an empty praise list writes nothing", () => {
-    loadFixture("diff-comment");
-    const empty = document.querySelector<HTMLTextAreaElement>(
-      '[data-editor="1"] textarea',
-    )!;
+  test('an empty praise list writes nothing', () => {
+    loadFixture('diff-comment');
+    const empty = document.querySelector<HTMLTextAreaElement>('[data-editor="1"] textarea')!;
     addPraiseButton(empty, () => []);
 
     buttons()[0].click();
 
-    expect(empty.value).toBe("");
+    expect(empty.value).toBe('');
   });
 });
 ```
@@ -1076,6 +1001,7 @@ git commit -m "Test praise writing and hide-on-typing behaviour"
 The suite's honest value depends on someone being able to replace synthetic fixtures with real ones. Undocumented, that never happens.
 
 **Files:**
+
 - Create: `test/fixtures/README.md`
 - Modify: `CONTRIBUTING.md`
 
@@ -1090,10 +1016,10 @@ HTML snapshots of GitHub PR pages, used by `src/lib/selectors.test.ts` and
 `src/lib/praise-button.test.ts` to check the praise button still lands beside
 each editor's Cancel button.
 
-| File | State captured | Source | Captured |
-|---|---|---|---|
-| `review-dialog.html` | "Finish your review" dialog open | synthetic | — |
-| `diff-comment.html` | Inline diff comment editor open, two editors | synthetic | — |
+| File                 | State captured                               | Source    | Captured |
+| -------------------- | -------------------------------------------- | --------- | -------- |
+| `review-dialog.html` | "Finish your review" dialog open             | synthetic | —        |
+| `diff-comment.html`  | Inline diff comment editor open, two editors | synthetic | —        |
 
 ## What these tests can and cannot tell you
 
@@ -1117,7 +1043,7 @@ Needs a logged-in browser, so it cannot be automated in CI.
 1. Open a PR with a reasonably small diff. `Files changed`.
 2. For `diff-comment.html`: click the `+` on a diff line to open the inline
    comment editor. Open a second one on another line -- two editors is what lets
-   the tests prove the insertion walk uses each editor's *own* Cancel.
+   the tests prove the insertion walk uses each editor's _own_ Cancel.
    For `review-dialog.html`: click `Review changes` -> `Comment`.
 3. In devtools, select the outermost element containing every editor plus the
    page-level buttons, then right-click -> Copy -> Copy outerHTML.
@@ -1129,7 +1055,7 @@ Needs a logged-in browser, so it cannot be automated in CI.
 6. Prune the bulk. Keep the complete ancestor chain from the root down to each
    editor -- that chain is what `findInsertionPoint()` walks -- and delete
    unrelated diff rows and sidebars. Keep at least one markdown textarea that
-   sits *outside* both regions, so the tests can show `praiseContext()` leaves
+   sits _outside_ both regions, so the tests can show `praiseContext()` leaves
    it alone.
 7. Update the table above with the PR URL and date, and drop the `synthetic`
    note from the file's header comment.

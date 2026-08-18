@@ -34,15 +34,15 @@ export const markdownTextarea = [
   'textarea[data-component="Textarea"]',
   'textarea[placeholder="Leave a comment"]',
   // Legacy views.
-  "textarea#pull_request_review_body",
-  "#files textarea",
+  'textarea#pull_request_review_body',
+  '#files textarea',
 ];
 
 /** The "Finish your review" modal, used to tell reviews from inline comments. */
 export const reviewDialog = [
   '[data-component="Dialog"][role="dialog"]',
   '[role="dialog"][aria-modal="true"]',
-  "#review-changes-modal", // legacy
+  '#review-changes-modal', // legacy
 ];
 
 /**
@@ -53,7 +53,7 @@ export const diffCommentEditor = [
   'div[class*="AddCommentEditor"]',
   '[data-testid="review-thread"]',
   'div[class*="ReviewThread"]',
-  "#files", // legacy
+  '#files', // legacy
 ];
 
 /**
@@ -65,20 +65,18 @@ export const diffCommentEditor = [
  * comments. Without it we would also decorate the PR description editor and
  * edit-in-place boxes on the conversation tab, none of which are praise.
  */
-export function praiseContext(
-  textarea: HTMLTextAreaElement,
-): "reviews" | "comments" | undefined {
-  if (textarea.closest(reviewDialog.join(","))) {
-    return "reviews";
+export function praiseContext(textarea: HTMLTextAreaElement): 'reviews' | 'comments' | undefined {
+  if (textarea.closest(reviewDialog.join(','))) {
+    return 'reviews';
   }
 
-  if (textarea.closest(diffCommentEditor.join(","))) {
-    return "comments";
+  if (textarea.closest(diffCommentEditor.join(','))) {
+    return 'comments';
   }
 
   // Legacy review summary, which sits outside both regions.
-  if (textarea.id === "pull_request_review_body") {
-    return "reviews";
+  if (textarea.id === 'pull_request_review_body') {
+    return 'reviews';
   }
 
   return undefined;
@@ -92,7 +90,7 @@ export function praiseContext(
  * of always-open composers, which have no Cancel because they were never opened
  * for a single reply.
  */
-const anchorLabel = "Cancel";
+const anchorLabel = 'Cancel';
 
 /**
  * Finds the Cancel button within `scope`, if it has one.
@@ -101,7 +99,7 @@ const anchorLabel = "Cancel";
  * be mistaken for it.
  */
 function findAnchorButton(scope: HTMLElement): HTMLElement | undefined {
-  const buttons = scope.querySelectorAll<HTMLElement>("button");
+  const buttons = scope.querySelectorAll<HTMLElement>('button');
 
   for (const button of buttons) {
     if (buttonLabel(button) === anchorLabel) {
@@ -113,7 +111,7 @@ function findAnchorButton(scope: HTMLElement): HTMLElement | undefined {
 }
 
 function buttonLabel(button: HTMLElement): string {
-  return (button.textContent ?? "").replace(/\s+/g, " ").trim();
+  return (button.textContent ?? '').replace(/\s+/g, ' ').trim();
 }
 
 export type InsertionPoint = {
@@ -139,7 +137,7 @@ export type InsertionPoint = {
  * its Cancel -- which is likely exactly when a footer is still mounting and the
  * editor's own Cancel has not appeared yet.
  */
-const editorBoundary = [...reviewDialog, ...diffCommentEditor, "form"];
+const editorBoundary = [...reviewDialog, ...diffCommentEditor, 'form'];
 
 /**
  * Finds where to put our button: immediately before the editor's Cancel button.
@@ -152,10 +150,8 @@ const editorBoundary = [...reviewDialog, ...diffCommentEditor, "form"];
  *
  * @param textarea The comment body.
  */
-export function findInsertionPoint(
-  textarea: HTMLTextAreaElement,
-): InsertionPoint | undefined {
-  const boundary = editorBoundary.join(",");
+export function findInsertionPoint(textarea: HTMLTextAreaElement): InsertionPoint | undefined {
+  const boundary = editorBoundary.join(',');
   let element: HTMLElement | null = textarea.parentElement;
 
   for (let depth = 0; element && depth < 12; depth++) {

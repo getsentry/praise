@@ -1,12 +1,8 @@
-import { setFieldText } from "text-field-edit";
-import observe from "./lib/selector-observer";
-import {
-  findInsertionPoint,
-  markdownTextarea,
-  praiseContext,
-} from "./lib/selectors";
+import { setFieldText } from 'text-field-edit';
+import observe from './lib/selector-observer';
+import { findInsertionPoint, markdownTextarea, praiseContext } from './lib/selectors';
 
-const buttonClass = "sentry-pr-praise-button";
+const buttonClass = 'sentry-pr-praise-button';
 
 let commentPraises: string[] = [];
 let reviewPraises: string[] = [];
@@ -45,7 +41,7 @@ function loadPraises(): void {
 /** Picks up edits made in the options page without needing a reload. */
 function watchPraises(): void {
   chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName !== "sync") {
+    if (areaName !== 'sync') {
       return;
     }
 
@@ -60,9 +56,7 @@ function watchPraises(): void {
 
 /** `chrome.storage` values are untyped, so verify the shape before using it. */
 function toPraises(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === "string")
-    : [];
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }
 
 let observerController: AbortController | undefined;
@@ -80,7 +74,7 @@ function setUpObserver(): void {
 
   observe(
     markdownTextarea,
-    (element) => {
+    element => {
       addPraiseButton(element as HTMLTextAreaElement);
     },
     { signal: observerController.signal },
@@ -94,13 +88,7 @@ function setUpObserver(): void {
  * `pjax:*` is gone from GitHub's current bundles; `soft-nav:*` replaced it.
  */
 function watchNavigation(): void {
-  for (const event of [
-    "soft-nav:payload",
-    "soft-nav:end",
-    "turbo:load",
-    "statechange",
-    "popstate",
-  ]) {
+  for (const event of ['soft-nav:payload', 'soft-nav:end', 'turbo:load', 'statechange', 'popstate']) {
     window.addEventListener(event, () => {
       setUpObserver();
     });
@@ -149,11 +137,10 @@ function addPraiseButton(textarea: HTMLTextAreaElement, attempt = 0): void {
 
   decorated.add(textarea);
 
-  const praises =
-    context === "reviews" ? () => reviewPraises : () => commentPraises;
+  const praises = context === 'reviews' ? () => reviewPraises : () => commentPraises;
 
   const button = createButton(before);
-  button.addEventListener("click", () => {
+  button.addEventListener('click', () => {
     setPraise(textarea, praises());
   });
 
@@ -168,25 +155,23 @@ function addPraiseButton(textarea: HTMLTextAreaElement, attempt = 0): void {
  * instead of hardcoding hashed class names, which go stale on every deploy.
  */
 function createButton(neighbour: HTMLElement): HTMLButtonElement {
-  const label = "PR";
+  const label = 'PR';
   const template =
-    neighbour.tagName === "BUTTON"
-      ? (neighbour as HTMLButtonElement)
-      : neighbour.querySelector("button");
+    neighbour.tagName === 'BUTTON' ? (neighbour as HTMLButtonElement) : neighbour.querySelector('button');
 
   if (template) {
     const clone = template.cloneNode(true) as HTMLButtonElement;
-    clone.type = "button";
+    clone.type = 'button';
     clone.disabled = false;
     for (const attribute of [
-      "id",
-      "aria-label",
-      "aria-describedby",
-      "data-variant",
-      "disabled",
-      "form",
-      "name",
-      "value",
+      'id',
+      'aria-label',
+      'aria-describedby',
+      'data-variant',
+      'disabled',
+      'form',
+      'name',
+      'value',
     ]) {
       clone.removeAttribute(attribute);
     }
@@ -201,7 +186,7 @@ function createButton(neighbour: HTMLElement): HTMLButtonElement {
         .querySelectorAll(
           '[data-component="leadingVisual"], [data-component="trailingVisual"], [data-component="trailingAction"]',
         )
-        .forEach((element) => {
+        .forEach(element => {
           element.remove();
         });
     } else {
@@ -211,8 +196,8 @@ function createButton(neighbour: HTMLElement): HTMLButtonElement {
     return clone;
   }
 
-  const button = document.createElement("button");
-  button.type = "button";
+  const button = document.createElement('button');
+  button.type = 'button';
   button.className = buttonClass;
   button.textContent = label;
   return button;
@@ -254,11 +239,8 @@ function setPraise(textarea: HTMLTextAreaElement, praises: string[]): void {
  * @param textarea The textarea to put the praise.
  * @param button The button belonging to that textarea.
  */
-function toggleButton(
-  textarea: HTMLTextAreaElement,
-  button: HTMLElement,
-): void {
-  textarea.addEventListener("input", function () {
+function toggleButton(textarea: HTMLTextAreaElement, button: HTMLElement): void {
+  textarea.addEventListener('input', function () {
     // Keep the button around after our own write so it can be clicked again for
     // a different praise.
     if (this.value === lastWritten.get(textarea)) {
