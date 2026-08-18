@@ -16,7 +16,12 @@ module.exports = {
     optimization: {
         splitChunks: {
             name: "vendor",
-            chunks: "initial",
+            // MV3's background.service_worker takes a single file, so the
+            // background bundle must stay self-contained. content_script
+            // uses nothing from vendor either, so keep it out of the split.
+            chunks(chunk) {
+                return chunk.name !== "background" && chunk.name !== "content_script";
+            },
         },
     },
     module: {

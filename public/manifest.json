@@ -1,13 +1,15 @@
 {
+  "manifest_version": 3,
   "name": "PRaise",
   "description": "Give praise to PRs with one click.",
   "version": "1.0",
-  "manifest_version": 2,
+  "icons": {
+    "16": "icon-16.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
   "background": {
-    "scripts": [
-      "js/vendor.js",
-      "js/background.js"
-    ]
+    "service_worker": "js/background.js"
   },
   "content_scripts": [
     {
@@ -15,7 +17,6 @@
         "https://github.com/*/pull/*"
       ],
       "js": [
-        "js/vendor.js",
         "js/content_script.js"
       ],
       "css": [
@@ -24,17 +25,10 @@
     }
   ],
   "permissions": [
-    "activeTab",
-    "storage",
-    "<all_urls>"
+    "storage"
   ],
   "options_ui": {
     "page": "options.html",
-    "chrome_style": true
-  },
-  "icons": {
-    "16": "icon-16.png",
-    "48": "icon-48.png",
-    "128": "icon-128.png"
+    "open_in_tab": true
   }
 }
