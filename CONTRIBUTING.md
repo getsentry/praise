@@ -58,6 +58,30 @@ Run watch mode.
 
 type `Ctrl + Shift + B`
 
+## Test
+
+```sh
+npm test
+```
+
+Selector and placement tests run in Jest against jsdom, using HTML fixtures
+captured from real GitHub PR pages. They fail when the praise button stops
+landing beside each editor's Cancel button. There are 25 tests across 4 suites.
+
+They do not detect GitHub redesigning its PR pages -- the fixtures are frozen
+snapshots. See `test/fixtures/README.md` for what that means and how to refresh
+them.
+
+`src/lib/selector-observer.ts` has no tests: it works by listening for CSS
+`animationstart`, which neither jsdom nor happy-dom implements.
+
+`tsconfig.json` includes `"node"` in its `types` array, and `@types/node` is a
+devDependency, because the fixture loader reads files from disk with
+`node:fs`. This matters because `npm test` alone won't catch a type error in a
+test file -- `@swc/jest` strips types without checking them -- so `npm run
+build`, which runs `tsc --noEmit` over all of `src/`, is the check that
+actually does.
+
 ## Load extension to chrome
 
 Load `dist` directory
