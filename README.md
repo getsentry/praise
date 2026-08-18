@@ -12,7 +12,7 @@ Chrome Extension for giving praise to GitHub PRs with one click.
 
 ## Installation
 
-To use the alpha version please follow the following steps.
+To use the alpha version please follow the following steps. This extension uses Manifest V3 and requires Chrome 88 or newer.
 
 1. Clone this repo.
 2. `npm install`

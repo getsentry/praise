@@ -5,7 +5,7 @@ loadPraises();
 observeDOMChanges();
 
 function loadPraises() {
-  chrome.storage.sync.get(
+  chrome.storage.sync.get<{ reviews: string[]; comments: string[] }>(
     {
       reviews: [],
       comments: [],

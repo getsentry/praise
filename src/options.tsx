@@ -7,12 +7,12 @@ const Options = () => {
   const [comments, setComments] = useState<string[]>();
 
   useEffect(() => {
-    chrome.storage.sync.get(
+    chrome.storage.sync.get<{ reviews: string[]; comments: string[] }>(
       {
         reviews: [],
         comments: [],
       },
-      (items: { reviews: string[]; comments: string[] }) => {
+      (items) => {
         setReviews(items.reviews);
         setComments(items.comments);
       },
@@ -58,7 +58,8 @@ const Options = () => {
   );
 };
 
-createRoot(document.getElementById("root")!).render(
+const container = document.getElementById("root")!;
+createRoot(container).render(
   <React.StrictMode>
     <Options />
   </React.StrictMode>,
