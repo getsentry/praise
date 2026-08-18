@@ -1,29 +1,29 @@
 .sentry-pr-praise-button {
-    color: white;
-    font-size: 0.8rem;
-    background-color: #e1567c;
-    border: none;
-    border-radius: 1rem;
-    padding: 4px 6px;
-    cursor: pointer;
-    position:absolute;
-    right:8px;
-    top:8px;
+  color: white;
+  font-size: 0.8rem;
+  background-color: #e1567c;
+  border: none;
+  border-radius: 1rem;
+  padding: 4px 6px;
+  cursor: pointer;
+  position: absolute;
+  right: 8px;
+  top: 8px;
 
-    user-select: none;
+  user-select: none;
 }
 
 .sentry-pr-praise-button:hover {
-    background-color: #c73852;
+  background-color: #c73852;
 }
 
 .container {
-    margin-left: auto;
-    margin-right: auto;
-    width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 940px;
 }
 
 .textarea {
-    min-height: 100px;
-    min-width: 400px;
+  min-height: 100px;
+  min-width: 400px;
 }

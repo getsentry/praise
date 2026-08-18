@@ -39,7 +39,7 @@ Implements spec sections 1, 2, 3, 4.
    exactly as the spec's section 4 lists them, including `--deny-warnings`.
 4. Create `.oxfmtrc.json` with the spec's section 1 content verbatim.
 5. Create `.oxlintrc.json` per spec section 2: `plugins: ["typescript",
-   "import", "jsdoc", "react"]`, `options.typeAware: true`, the base rules, the
+"import", "jsdoc", "react"]`, `options.typeAware: true`, the base rules, the
    TS/JS/test/config override blocks, `env` with `es2017`/`browser`/`node`, and
    `ignorePatterns` for `dist/**`, `node_modules/**`, `coverage/**`. Test
    overrides target `**/__tests__/**`, `**/*.test.ts`, `**/*.test.tsx`; the

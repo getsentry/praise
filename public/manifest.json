@@ -13,20 +13,12 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://github.com/*/pull/*"
-      ],
-      "js": [
-        "js/content_script.js"
-      ],
-      "css": [
-        "style.css"
-      ]
+      "matches": ["https://github.com/*/pull/*"],
+      "js": ["js/content_script.js"],
+      "css": ["style.css"]
     }
   ],
-  "permissions": [
-    "storage"
-  ],
+  "permissions": ["storage"],
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true

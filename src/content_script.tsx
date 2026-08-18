@@ -41,38 +41,31 @@ function observeDOMChanges() {
 }
 
 function setUpComments() {
-  let gitHubFiles = document.getElementById("files");
-  let textareas = gitHubFiles?.querySelectorAll("textarea") ?? [];
+  let gitHubFiles = document.getElementById('files');
+  let textareas = gitHubFiles?.querySelectorAll('textarea') ?? [];
   for (let textarea of textareas) {
-    textarea.parentElement
-      ?.querySelectorAll(".sentry-pr-praise-button")
-      .forEach((e) => e.remove());
+    textarea.parentElement?.querySelectorAll('.sentry-pr-praise-button').forEach(e => e.remove());
 
     setUpPraiseButton(textarea, () => commentPraises);
   }
 }
 
 function setUpReview() {
-  let reviewTextarea = document.getElementById(
-    "pull_request_review_body",
-  ) as HTMLTextAreaElement;
+  let reviewTextarea = document.getElementById('pull_request_review_body') as HTMLTextAreaElement;
 
   if (reviewTextarea != null) {
     setUpPraiseButton(reviewTextarea, () => reviewPraises);
   }
 }
 
-function setUpPraiseButton(
-  textarea: HTMLTextAreaElement,
-  comments: { (): string[] },
-) {
-  let span = document.createElement("span");
-  span.innerHTML = "PR";
-  span.className = "sentry-pr-praise-button";
+function setUpPraiseButton(textarea: HTMLTextAreaElement, comments: { (): string[] }) {
+  let span = document.createElement('span');
+  span.innerHTML = 'PR';
+  span.className = 'sentry-pr-praise-button';
 
   textarea.parentElement?.append(span);
   toggleButton(textarea, span);
-  span.addEventListener("click", function () {
+  span.addEventListener('click', function () {
     setPraise(textarea, comments());
   });
 }
@@ -84,7 +77,7 @@ function setUpPraiseButton(
  * @param praises The praises to randomly pick.
  */
 function setPraise(textarea: HTMLTextAreaElement, praises: string[]) {
-  var newText = "";
+  var newText = '';
   do {
     let rand = Math.floor(Math.random() * praises.length);
     newText = praises[rand];
@@ -93,9 +86,7 @@ function setPraise(textarea: HTMLTextAreaElement, praises: string[]) {
   // Github form validation logic needs the focus and input event
   textarea.focus();
   textarea.value = newText;
-  textarea.dispatchEvent(
-    new CustomEvent("input", { detail: { "sentry-ignore-input": true } }),
-  );
+  textarea.dispatchEvent(new CustomEvent('input', { detail: { 'sentry-ignore-input': true } }));
 }
 
 /**
@@ -105,18 +96,18 @@ function setPraise(textarea: HTMLTextAreaElement, praises: string[]) {
  * @param button The button inside the textarea.
  */
 function toggleButton(textarea: HTMLTextAreaElement, button: HTMLElement) {
-  textarea.addEventListener("input", function (event) {
+  textarea.addEventListener('input', function (event) {
     if (event instanceof CustomEvent) {
       const e = event as CustomEvent<Record<string, unknown>>;
-      if (e.detail["sentry-ignore-input"]) {
+      if (e.detail['sentry-ignore-input']) {
         return;
       }
     }
 
     if (this.value.length > 0) {
-      button.style.display = "none";
+      button.style.display = 'none';
     } else {
-      button.style.display = "block";
+      button.style.display = 'block';
     }
   });
 }

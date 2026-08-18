@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { createRoot } from "react-dom/client";
-import TextareaAutosize from "react-textarea-autosize";
+import React, { useEffect, useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import TextareaAutosize from 'react-textarea-autosize';
 
 const Options = () => {
   const [reviews, setReviews] = useState<string[]>();
@@ -12,7 +12,7 @@ const Options = () => {
         reviews: [],
         comments: [],
       },
-      (items) => {
+      items => {
         setReviews(items.reviews);
         setComments(items.comments);
       },
@@ -40,25 +40,25 @@ const Options = () => {
       <h2>Review Praises</h2>
       <TextareaAutosize
         className="textarea"
-        onChange={(event) => {
+        onChange={event => {
           reviewsChanged(event.target.value);
         }}
-        value={reviews?.join("\n")}
+        value={reviews?.join('\n')}
       />
 
       <h2>Comment Praises</h2>
       <TextareaAutosize
         className="textarea"
-        onChange={(event) => {
+        onChange={event => {
           commentsChanged(event.target.value);
         }}
-        value={comments?.join("\n")}
+        value={comments?.join('\n')}
       />
     </>
   );
 };
 
-const container = document.getElementById("root")!;
+const container = document.getElementById('root')!;
 createRoot(container).render(
   <React.StrictMode>
     <Options />

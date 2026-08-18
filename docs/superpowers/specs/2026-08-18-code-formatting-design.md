@@ -24,13 +24,13 @@ Source is small: 4 TypeScript files, 223 lines total.
 
 ## Decisions
 
-| Question | Decision |
-|---|---|
-| Fidelity to upstream | Same toolchain, adapted rules |
-| Pre-commit hook | husky + lint-staged, auto-fix mode |
-| CI structure | Separate `lint.yml` workflow |
-| Strictness | Full strictness; fix the violations |
-| Reformat landing | Separate reformat commit + `.git-blame-ignore-revs` |
+| Question             | Decision                                            |
+| -------------------- | --------------------------------------------------- |
+| Fidelity to upstream | Same toolchain, adapted rules                       |
+| Pre-commit hook      | husky + lint-staged, auto-fix mode                  |
+| CI structure         | Separate `lint.yml` workflow                        |
+| Strictness           | Full strictness; fix the violations                 |
+| Reformat landing     | Separate reformat commit + `.git-blame-ignore-revs` |
 
 ## Design
 
@@ -63,12 +63,12 @@ A single flat file (upstream's base/leaf split exists to serve a monorepo; there
 is one package here). It carries upstream's base rules and its TS/JS/test
 override blocks, with four documented departures:
 
-| Upstream | Here | Why |
-|---|---|---|
-| `jsPlugins: @sentry/eslint-plugin-sdk` + 4 `sdk/*` rules | dropped | SDK-specific; extra dependency, no benefit |
-| `no-restricted-globals: [window, document, location, navigator]` on `src/**` | dropped | This is a Chrome extension; `document` is used legitimately in 5 places |
-| `plugins: [..., "vitest"]` + ~10 `vitest/*` disables | `react` instead | This repo uses jest; the vitest rules are dead config |
-| ~15 vendored/integration override blocks | dropped | Those paths do not exist here |
+| Upstream                                                                     | Here            | Why                                                                     |
+| ---------------------------------------------------------------------------- | --------------- | ----------------------------------------------------------------------- |
+| `jsPlugins: @sentry/eslint-plugin-sdk` + 4 `sdk/*` rules                     | dropped         | SDK-specific; extra dependency, no benefit                              |
+| `no-restricted-globals: [window, document, location, navigator]` on `src/**` | dropped         | This is a Chrome extension; `document` is used legitimately in 5 places |
+| `plugins: [..., "vitest"]` + ~10 `vitest/*` disables                         | `react` instead | This repo uses jest; the vitest rules are dead config                   |
+| ~15 vendored/integration override blocks                                     | dropped         | Those paths do not exist here                                           |
 
 Everything else carries over: `no-console`, `no-alert`, `no-param-reassign`,
 `prefer-template`, `no-bitwise`, `complexity: 33`, `max-lines: 300`,
@@ -161,11 +161,11 @@ Verified by running the adapted config against the real sources in the repositor
 itself: exactly **four** errors, **none auto-fixable** (`oxlint --fix` leaves all
 four).
 
-| Location | Rule | Fix |
-|---|---|---|
-| `src/background.ts:32` | `no-floating-promises` | `void chrome.storage.sync.set(seed)` |
-| `src/options.tsx:25` | `no-floating-promises` | `void` prefix |
-| `src/options.tsx:31` | `no-floating-promises` | `void` prefix |
+| Location                     | Rule                      | Fix                                                                  |
+| ---------------------------- | ------------------------- | -------------------------------------------------------------------- |
+| `src/background.ts:32`       | `no-floating-promises`    | `void chrome.storage.sync.set(seed)`                                 |
+| `src/options.tsx:25`         | `no-floating-promises`    | `void` prefix                                                        |
+| `src/options.tsx:31`         | `no-floating-promises`    | `void` prefix                                                        |
 | `src/content_script.tsx:111` | `no-unsafe-member-access` | `CustomEvent<Record<string, unknown>>` instead of bare `CustomEvent` |
 
 These are not cosmetic: the `no-unsafe-member-access` hit is `any` flowing
