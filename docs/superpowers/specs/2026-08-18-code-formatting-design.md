@@ -157,25 +157,29 @@ still catches anything skipped that way.
 
 ### 7. Lint violations to fix
 
-Verified by running the adapted config against the real sources: exactly six
-errors, **none auto-fixable** (`oxlint --fix` leaves all six).
+Verified by running the adapted config against the real sources in the repository
+itself: exactly **four** errors, **none auto-fixable** (`oxlint --fix` leaves all
+four).
 
 | Location | Rule | Fix |
 |---|---|---|
 | `src/background.ts:32` | `no-floating-promises` | `void chrome.storage.sync.set(seed)` |
 | `src/options.tsx:25` | `no-floating-promises` | `void` prefix |
 | `src/options.tsx:31` | `no-floating-promises` | `void` prefix |
-| `src/options.tsx:44` | `no-unsafe-member-access` | type the `onChange` parameter `React.ChangeEvent<HTMLTextAreaElement>` |
-| `src/options.tsx:53` | `no-unsafe-member-access` | same |
 | `src/content_script.tsx:111` | `no-unsafe-member-access` | `CustomEvent<Record<string, unknown>>` instead of bare `CustomEvent` |
 
-These are not cosmetic: the three `no-unsafe-member-access` hits are `any`
-flowing through real event handlers, and the `void`s make fire-and-forget
-storage writes explicit.
+These are not cosmetic: the `no-unsafe-member-access` hit is `any` flowing
+through a real event handler, and the `void`s make fire-and-forget storage writes
+explicit.
 
-Verified in a scratch copy with all six applied: `oxlint` exits 0, `oxfmt
---check` exits 0, and the two are stable together — formatting does not
-reintroduce lint errors.
+**Correction.** An earlier draft of this spec listed six errors, adding two
+`no-unsafe-member-access` hits at `src/options.tsx:44` and `:53` on the
+`TextareaAutosize` `onChange` parameters. Those were an artifact of the scratch
+directory used to measure: it did not have `react-textarea-autosize` installed,
+so the parameter degraded to `any` and the rule fired. In the real repository the
+package resolves and its shipped `.d.ts` types the parameter as
+`ChangeEvent<HTMLTextAreaElement>`, so no unsafe access exists and nothing needs
+fixing there. Confirmed by direct `npm run lint` output on the branch.
 
 ### 8. Commits and blame
 

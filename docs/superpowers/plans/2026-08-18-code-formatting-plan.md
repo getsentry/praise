@@ -47,24 +47,28 @@ Implements spec sections 1, 2, 3, 4.
 6. Replace `.editorconfig` with upstream's 9-line version (spec section 3).
 
 **Verification.** `npm ci` succeeds. `npx oxlint --version` and `npx oxfmt
---version` both print. `npm run lint` runs and reports exactly the six errors
+--version` both print. `npm run lint` runs and reports exactly the four errors
 listed in spec section 7 — not zero (which would mean the config is inert), not
 a `Failed to find tsgolint executable` message. `npm run format:check` exits
 non-zero and lists files. `npm test` and `npm run build` still pass.
 
-Do NOT fix the six lint errors in this task, and do NOT run `npm run format`.
+Do NOT fix the four lint errors in this task, and do NOT run `npm run format`.
 Leaving `lint` red here is correct.
 
 Commit: `build: add oxlint and oxfmt configuration`
 
-## Task 2 — Fix the six lint violations
+## Task 2 — Fix the four lint violations
 
 Implements spec section 7. Read its table for the exact locations and fixes.
 
-Apply all six fixes: one `void` prefix in `src/background.ts`, two `void`
-prefixes in `src/options.tsx`, typed `onChange` parameters on both
-`TextareaAutosize` elements in `src/options.tsx`, and a parameterized
+Apply all four fixes: one `void` prefix in `src/background.ts`, two `void`
+prefixes in `src/options.tsx`, and a parameterized
 `CustomEvent<Record<string, unknown>>` in `src/content_script.tsx`.
+
+Do not add explicit types to the `TextareaAutosize` `onChange` parameters — an
+earlier spec draft called for that, but the parameter is already properly typed
+by the package's own `.d.ts` and no rule fires there. See the correction note in
+spec section 7.
 
 Constraints: no behavior change; do not silence any rule with a disable comment
 or a config edit to make an error disappear; do not reformat.
