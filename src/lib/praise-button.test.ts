@@ -99,3 +99,71 @@ describe("in a diff comment editor", () => {
     expect(buttons(other)).toHaveLength(0);
   });
 });
+
+describe("writing praises", () => {
+  let textarea: HTMLTextAreaElement;
+
+  beforeEach(() => {
+    loadFixture("diff-comment");
+    textarea = document.querySelector<HTMLTextAreaElement>(
+      '[data-editor="1"] textarea',
+    )!;
+    addPraiseButton(textarea, praises);
+  });
+
+  test("clicking again can produce a different praise", () => {
+    const button = buttons()[0];
+
+    button.click();
+    const first = textarea.value;
+
+    // setPraise retries up to 10 times for a value different from the current
+    // one, so with two praises available a change is effectively certain.
+    button.click();
+
+    expect(textarea.value).not.toBe(first);
+    expect(commentPraises).toContain(textarea.value);
+  });
+
+  test("our own write leaves the button visible", () => {
+    const button = buttons()[0];
+
+    button.click();
+
+    // The whole point of tracking what we wrote: the input event our write fires
+    // is indistinguishable from the user's, and clicking again must stay possible.
+    expect(button.hidden).toBe(false);
+  });
+
+  test("typing manually hides the button", () => {
+    const button = buttons()[0];
+
+    textarea.value = "I typed this myself";
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+
+    expect(button.hidden).toBe(true);
+  });
+
+  test("clearing the field brings the button back", () => {
+    const button = buttons()[0];
+
+    textarea.value = "typed";
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    textarea.value = "";
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+
+    expect(button.hidden).toBe(false);
+  });
+
+  test("an empty praise list writes nothing", () => {
+    loadFixture("diff-comment");
+    const empty = document.querySelector<HTMLTextAreaElement>(
+      '[data-editor="1"] textarea',
+    )!;
+    addPraiseButton(empty, () => []);
+
+    buttons()[0].click();
+
+    expect(empty.value).toBe("");
+  });
+});
