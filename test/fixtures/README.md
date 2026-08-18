@@ -5,10 +5,10 @@ and `src/lib/praise-button.test.ts` to check the praise button still lands
 beside each editor's Cancel button. See the table below for where each one
 came from.
 
-| File | State represented | Source | Captured |
-|---|---|---|---|
-| `review-dialog.html` | "Finish your review" dialog open | synthetic | — |
-| `diff-comment.html` | Inline diff comment editor open, two editors | synthetic | — |
+| File                 | State represented                            | Source    | Captured |
+| -------------------- | -------------------------------------------- | --------- | -------- |
+| `review-dialog.html` | "Finish your review" dialog open             | synthetic | —        |
+| `diff-comment.html`  | Inline diff comment editor open, two editors | synthetic | —        |
 
 ## What these tests can and cannot tell you
 
@@ -32,7 +32,7 @@ Needs a logged-in browser, so it cannot be automated in CI.
 1. Open a PR with a reasonably small diff. `Files changed`.
 2. For `diff-comment.html`: click the `+` on a diff line to open the inline
    comment editor. Open a second one on another line -- two editors is what lets
-   the tests prove the insertion walk uses each editor's *own* Cancel.
+   the tests prove the insertion walk uses each editor's _own_ Cancel.
    For `review-dialog.html`: click `Review changes` -> `Comment`.
 3. In devtools, select the outermost element containing every editor plus the
    page-level buttons, then right-click -> Copy -> Copy outerHTML.
@@ -44,7 +44,7 @@ Needs a logged-in browser, so it cannot be automated in CI.
 6. Prune the bulk. Keep the complete ancestor chain from the root down to each
    editor -- that chain is what `findInsertionPoint()` walks -- and delete
    unrelated diff rows and sidebars. Keep at least one markdown textarea that
-   sits *outside* both regions, so the tests can show `praiseContext()` leaves
+   sits _outside_ both regions, so the tests can show `praiseContext()` leaves
    it alone.
 7. Update the table above with the PR URL and date, and drop the `synthetic`
    note from the file's header comment.

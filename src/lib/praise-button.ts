@@ -6,10 +6,10 @@
  * browser. Everything here is plain DOM work against an editor it is handed.
  */
 
-import { setFieldText } from "text-field-edit";
-import { findInsertionPoint, praiseContext } from "./selectors";
+import { setFieldText } from 'text-field-edit';
+import { findInsertionPoint, praiseContext } from './selectors';
 
-export const buttonClass = "sentry-pr-praise-button";
+export const buttonClass = 'sentry-pr-praise-button';
 
 /**
  * The text we last wrote into a given textarea.
@@ -31,18 +31,14 @@ const decorated = new WeakSet<HTMLTextAreaElement>();
  * that already exist -- the content script closes over its own mutable state,
  * and tests pass a literal.
  */
-export type PraiseSource = (context: "reviews" | "comments") => string[];
+export type PraiseSource = (context: 'reviews' | 'comments') => string[];
 
 /**
  * Adds the praise button to the left of a comment editor's Cancel button.
  *
  * @param attempt Which retry this is; see the note on waiting below.
  */
-export function addPraiseButton(
-  textarea: HTMLTextAreaElement,
-  getPraises: PraiseSource,
-  attempt = 0,
-): void {
+export function addPraiseButton(textarea: HTMLTextAreaElement, getPraises: PraiseSource, attempt = 0): void {
   if (decorated.has(textarea)) {
     return;
   }
@@ -80,7 +76,7 @@ export function addPraiseButton(
   decorated.add(textarea);
 
   const button = createButton(before);
-  button.addEventListener("click", () => {
+  button.addEventListener('click', () => {
     setPraise(textarea, getPraises(context));
   });
 
@@ -95,25 +91,23 @@ export function addPraiseButton(
  * instead of hardcoding hashed class names, which go stale on every deploy.
  */
 function createButton(neighbour: HTMLElement): HTMLButtonElement {
-  const label = "PR";
+  const label = 'Praise';
   const template =
-    neighbour.tagName === "BUTTON"
-      ? (neighbour as HTMLButtonElement)
-      : neighbour.querySelector("button");
+    neighbour.tagName === 'BUTTON' ? (neighbour as HTMLButtonElement) : neighbour.querySelector('button');
 
   if (template) {
     const clone = template.cloneNode(true) as HTMLButtonElement;
-    clone.type = "button";
+    clone.type = 'button';
     clone.disabled = false;
     for (const attribute of [
-      "id",
-      "aria-label",
-      "aria-describedby",
-      "data-variant",
-      "disabled",
-      "form",
-      "name",
-      "value",
+      'id',
+      'aria-label',
+      'aria-describedby',
+      'data-variant',
+      'disabled',
+      'form',
+      'name',
+      'value',
     ]) {
       clone.removeAttribute(attribute);
     }
@@ -128,7 +122,7 @@ function createButton(neighbour: HTMLElement): HTMLButtonElement {
         .querySelectorAll(
           '[data-component="leadingVisual"], [data-component="trailingVisual"], [data-component="trailingAction"]',
         )
-        .forEach((element) => {
+        .forEach(element => {
           element.remove();
         });
     } else {
@@ -138,8 +132,8 @@ function createButton(neighbour: HTMLElement): HTMLButtonElement {
     return clone;
   }
 
-  const button = document.createElement("button");
-  button.type = "button";
+  const button = document.createElement('button');
+  button.type = 'button';
   button.className = buttonClass;
   button.textContent = label;
   return button;
@@ -181,11 +175,8 @@ function setPraise(textarea: HTMLTextAreaElement, praises: string[]): void {
  * @param textarea The textarea to put the praise.
  * @param button The button belonging to that textarea.
  */
-function toggleButton(
-  textarea: HTMLTextAreaElement,
-  button: HTMLElement,
-): void {
-  textarea.addEventListener("input", function () {
+function toggleButton(textarea: HTMLTextAreaElement, button: HTMLElement): void {
+  textarea.addEventListener('input', function () {
     // Keep the button around after our own write so it can be clicked again for
     // a different praise.
     if (this.value === lastWritten.get(textarea)) {

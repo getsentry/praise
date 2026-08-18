@@ -6,8 +6,7 @@ let commentPraises: string[] = [];
 let reviewPraises: string[] = [];
 
 /** Read at click time, so options-page edits reach existing buttons. */
-const getPraises: PraiseSource = (context) =>
-  context === "reviews" ? reviewPraises : commentPraises;
+const getPraises: PraiseSource = context => (context === 'reviews' ? reviewPraises : commentPraises);
 
 loadPraises();
 watchPraises();
