@@ -16,17 +16,26 @@
 
 const animationName = "praise-selector-observer";
 
-let animationRegistered = false;
+/**
+ * The `@keyframes` definition, kept so we can tell "already registered" from
+ * "registered, then removed from under us".
+ *
+ * A plain boolean latch -- what refined-github's `onetime` gives you -- fails
+ * closed in the wrong direction: nothing stops something else on the page from
+ * clearing our style out of `document.head`, and if that happens every later
+ * `observe()` call registers its rule against keyframes that no longer exist.
+ * No animation ever starts, so the observer goes quiet without erroring.
+ */
+let animationStyle: HTMLStyleElement | undefined;
 
 function registerAnimation(): void {
-  if (animationRegistered) {
+  if (animationStyle?.isConnected) {
     return;
   }
-  animationRegistered = true;
 
-  const style = document.createElement("style");
-  style.textContent = `@keyframes ${animationName} {}`;
-  document.head.append(style);
+  animationStyle = document.createElement("style");
+  animationStyle.textContent = `@keyframes ${animationName} {}`;
+  document.head.append(animationStyle);
 }
 
 let observerCount = 0;
