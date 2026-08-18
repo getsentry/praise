@@ -107,7 +107,7 @@ function setPraise(textarea: HTMLTextAreaElement, praises: string[]) {
 function toggleButton(textarea: HTMLTextAreaElement, button: HTMLElement) {
   textarea.addEventListener("input", function (event) {
     if (event instanceof CustomEvent) {
-      let e = event as CustomEvent;
+      const e = event as CustomEvent<Record<string, unknown>>;
       if (e.detail["sentry-ignore-input"]) {
         return;
       }

@@ -29,7 +29,7 @@ chrome.runtime.onInstalled.addListener((details) => {
     }
 
     if (Object.keys(seed).length > 0) {
-      chrome.storage.sync.set(seed);
+      void chrome.storage.sync.set(seed);
     }
   });
 });

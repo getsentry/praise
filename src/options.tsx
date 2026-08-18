@@ -22,13 +22,13 @@ const Options = () => {
   function reviewsChanged(reviewText: string) {
     let reviews = split(reviewText);
     setReviews(reviews);
-    chrome.storage.sync.set({ reviews: reviews });
+    void chrome.storage.sync.set({ reviews: reviews });
   }
 
   function commentsChanged(commentText: string) {
     let comments = split(commentText);
     setComments(comments);
-    chrome.storage.sync.set({ comments: comments });
+    void chrome.storage.sync.set({ comments: comments });
   }
 
   function split(value: string): string[] {
