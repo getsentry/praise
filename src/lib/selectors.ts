@@ -169,16 +169,22 @@ export function findInsertionPoint(
     // Primer sometimes wraps a button in a tooltip or layout element. Insert
     // before that wrapper so we become a sibling of the visible buttons, not of
     // the wrapper's internals.
+    //
+    // Carrying the parent along rather than reading it back at the end is what
+    // makes the row non-null without an assertion: `anchor` came from
+    // `element.querySelectorAll`, so it is a descendant of `element` and the
+    // loop only climbs while the next parent is still below `element`. `before`
+    // therefore always has a parent -- but only `row` being a separate binding
+    // lets the types say so.
     let before: HTMLElement = anchor;
-    while (
-      before.parentElement &&
-      before.parentElement !== element &&
-      before.parentElement.children.length === 1
-    ) {
-      before = before.parentElement;
+    let row: HTMLElement = anchor.parentElement;
+
+    while (row !== element && row.parentElement && row.children.length === 1) {
+      before = row;
+      row = row.parentElement;
     }
 
-    return { row: before.parentElement!, before };
+    return { row, before };
   }
 
   return undefined;
