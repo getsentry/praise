@@ -2,6 +2,12 @@
   "name": "chrome-extension-typescript-starter",
   "version": "0.0.1",
   "description": "chrome-extension-typescript-starter",
+  "license": "MIT",
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chibat/chrome-extension-typescript-starter.git"
+  },
   "main": "index.js",
   "scripts": {
     "watch": "webpack --config webpack/webpack.dev.js --watch",
@@ -9,13 +15,13 @@
     "clean": "rimraf dist",
     "test": "jest",
     "typecheck": "tsc --noEmit",
-    "style": "prettier --write \"src/**/*.{ts,tsx}\""
-  },
-  "author": "",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/chibat/chrome-extension-typescript-starter.git"
+    "format": "oxfmt . --write",
+    "format:check": "oxfmt . --check",
+    "lint": "oxlint . --deny-warnings",
+    "lint:fix": "oxlint . --fix --deny-warnings",
+    "verify": "npm run format:check && npm run lint",
+    "fix": "npm run format && npm run lint:fix",
+    "prepare": "husky"
   },
   "dependencies": {
     "react": "^19.2.8",
@@ -31,14 +37,27 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "copy-webpack-plugin": "^14.0.0",
+    "husky": "^9",
     "jest": "^30.4.2",
-    "prettier": "^3.9.6",
+    "lint-staged": "^17",
+    "oxfmt": "^0.63",
+    "oxlint": "^1.78",
+    "oxlint-tsgolint": "^7.0.2001",
     "rimraf": "^6.1.3",
     "swc-loader": "^0.2.7",
     "typescript": "^7.0.2",
     "webpack": "^5.109.2",
     "webpack-cli": "^7.2.2",
     "webpack-merge": "^6.0.1"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "oxfmt --write --no-error-on-unmatched-pattern",
+      "oxlint --fix"
+    ],
+    "*.{json,md,css,html,yml,yaml}": [
+      "oxfmt --write --no-error-on-unmatched-pattern"
+    ]
   },
   "allowScripts": {
     "@swc/core@1.16.0": true

@@ -1,15 +1,15 @@
 {
-    "compilerOptions": {
-        "strict": true,
-        "module": "esnext",
-        "moduleResolution": "bundler",
-        "target": "es2020",
-        "esModuleInterop": true,
-        "sourceMap": false,
-        "rootDir": "src",
-        "outDir": "dist/js",
-        "noEmitOnError": true,
-        "jsx": "react-jsx",
-        "types": ["chrome", "jest", "react", "react-dom"]
-    }
+  "compilerOptions": {
+    "strict": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2020",
+    "esModuleInterop": true,
+    "sourceMap": false,
+    "rootDir": "src",
+    "outDir": "dist/js",
+    "noEmitOnError": true,
+    "jsx": "react-jsx",
+    "types": ["chrome", "jest", "react", "react-dom"]
+  }
 }

@@ -14,7 +14,7 @@
  * https://github.com/refined-github/refined-github/blob/main/source/helpers/selector-observer.tsx
  */
 
-const animationName = "praise-selector-observer";
+const animationName = 'praise-selector-observer';
 
 /**
  * The `@keyframes` definition, kept so we can tell "already registered" from
@@ -33,7 +33,7 @@ function registerAnimation(): void {
     return;
   }
 
-  animationStyle = document.createElement("style");
+  animationStyle = document.createElement('style');
   animationStyle.textContent = `@keyframes ${animationName} {}`;
   document.head.append(animationStyle);
 }
@@ -55,9 +55,7 @@ export default function observe(
     return;
   }
 
-  const selector = Array.isArray(selectors)
-    ? selectors.join(",\n")
-    : (selectors as string);
+  const selector = Array.isArray(selectors) ? selectors.join(',\n') : (selectors as string);
 
   registerAnimation();
 
@@ -65,7 +63,7 @@ export default function observe(
   // consume each other's elements.
   const seenMark = `praise-seen-${observerCount++}`;
 
-  const rule = document.createElement("style");
+  const rule = document.createElement('style');
   // `:where` keeps specificity at zero so we never affect GitHub's own styling.
   rule.textContent = `
     :where(${selector}):not(.${seenMark}) {
@@ -73,7 +71,7 @@ export default function observe(
     }
   `;
   document.body.append(rule);
-  signal?.addEventListener("abort", () => {
+  signal?.addEventListener('abort', () => {
     rule.remove();
   });
 
@@ -85,7 +83,7 @@ export default function observe(
     : signal;
 
   globalThis.addEventListener(
-    "animationstart",
+    'animationstart',
     (event: AnimationEvent) => {
       if (event.animationName !== animationName) {
         return;
@@ -95,11 +93,7 @@ export default function observe(
 
       // The animation can also start on a ::before pseudo-element of a
       // non-matching element, so re-check explicitly.
-      if (
-        !(target instanceof HTMLElement) ||
-        target.classList.contains(seenMark) ||
-        !target.matches(selector)
-      ) {
+      if (!(target instanceof HTMLElement) || target.classList.contains(seenMark) || !target.matches(selector)) {
         return;
       }
 

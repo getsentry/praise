@@ -46,7 +46,7 @@ Verified empirically before designing, not assumed:
    report `getComputedStyle(el).animationName` as `"none"`/`""`. Therefore
    `src/lib/selector-observer.ts` — which works by registering a no-op CSS
    animation and listening for `animationstart` — **cannot be exercised in a
-   simulated DOM at all**. Its mechanism *is* the browser's style engine.
+   simulated DOM at all**. Its mechanism _is_ the browser's style engine.
 2. **`class*=` and `:where()` selectors work in both**, so the pure functions in
    `selectors.ts` are testable without a browser.
 3. **`document.execCommand` does not exist in jsdom**, so `setFieldText` from
@@ -98,7 +98,7 @@ accepted cost of the hermetic-only decision.
   correctly, and not clipped.
 
 The residue is thinner than it sounds. Layer 1 asserts the `markdownTextarea`
-selectors match the real fixture's textareas — the observer's *input* — and
+selectors match the real fixture's textareas — the observer's _input_ — and
 `selector-observer.ts` is an unmodified port of refined-github's
 `source/helpers/selector-observer.tsx`. What goes untested is the animation
 plumbing between two independently verified ends.
