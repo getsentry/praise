@@ -1,29 +1,46 @@
+/*
+ * The button sits in the editor's button row next to Cancel, so it must lay out
+ * as a peer of GitHub's own buttons: the row is a flex container, and without an
+ * explicit basis the button stretches to the full width of the editor.
+ *
+ * Only colour is overridden -- padding, font and height are inherited from the
+ * cloned Primer button so the row stays aligned. Kept compact because Primer's
+ * dialog switches its footer to a wrapped layout past 48px tall.
+ */
 .sentry-pr-praise-button {
-  color: white;
-  font-size: 0.8rem;
-  background-color: #e1567c;
-  border: none;
-  border-radius: 1rem;
-  padding: 4px 6px;
-  cursor: pointer;
-  position: absolute;
-  right: 8px;
-  top: 8px;
+    flex: 0 0 auto;
+    align-self: center;
+    width: auto;
+    background-color: #e1567c;
+    border-color: #e1567c;
+    color: white;
 
-  user-select: none;
+    user-select: none;
+    cursor: pointer;
 }
 
 .sentry-pr-praise-button:hover {
-  background-color: #c73852;
+    background-color: #c73852;
+    border-color: #c73852;
+    color: white;
+}
+
+/* No Primer button to clone: style it from scratch (legacy views). */
+.sentry-pr-praise-button:not([class*="prc-"]):not(.btn) {
+    font-size: 0.8rem;
+    border: none;
+    border-radius: 1rem;
+    padding: 4px 10px;
+    line-height: 20px;
 }
 
 .container {
-  margin-left: auto;
-  margin-right: auto;
-  width: 940px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 940px;
 }
 
 .textarea {
-  min-height: 100px;
-  min-width: 400px;
+    min-height: 100px;
+    min-width: 400px;
 }
