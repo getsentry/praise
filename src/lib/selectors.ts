@@ -10,21 +10,31 @@
  *   3. Legacy Rails/Turbo markup, still served to viewers without the
  *      `prx_files` / `react_data_router_pull_request_files` flags.
  *
- * We deliberately anchor on the textarea and on button captions, not on container
- * classes. The editor is built from several nested wrappers whose names overlap
- * between the review dialog and the inline diff editor -- and one of them,
+ * Placement is decided in two steps, because neither alone is enough:
+ *
+ *   - `praiseContext()` checks the textarea is inside the review dialog or a diff
+ *     comment editor. This is what keeps us off the rest of the page.
+ *   - `findInsertionPoint()` then walks up to that editor's own Cancel button.
+ *
+ * The walk deliberately keys on the textarea and the button caption rather than
+ * on container classes: the editor is built from nested wrappers whose names
+ * overlap between the review dialog and the inline editor -- and one of them,
  * `ReviewMenuFooter-module__SubmitReviewButton`, names a *button* rather than a
- * row -- so container matching produced both duplicate and nested buttons.
+ * row -- so container matching produced duplicate and nested buttons.
  */
 
-/** A markdown comment body. Real <textarea>, but React-controlled. */
+/**
+ * A markdown comment body. Real <textarea>, but React-controlled.
+ *
+ * These match any Primer markdown editor on the page, including ones we want
+ * nothing to do with, so every hit must still pass `praiseContext()`.
+ */
 export const markdownTextarea = [
   'textarea[class*="MarkdownInput-module__textArea"]',
   'textarea[data-component="Textarea"]',
   'textarea[placeholder="Leave a comment"]',
   // Legacy views.
   "textarea#pull_request_review_body",
-  "textarea#new_comment_field",
   "#files textarea",
 ];
 
@@ -36,16 +46,51 @@ export const reviewDialog = [
 ];
 
 /**
+ * The inline "Add a comment" editor on a diff line, and the review threads it
+ * turns into.
+ */
+export const diffCommentEditor = [
+  'div[class*="AddCommentEditor"]',
+  '[data-testid="review-thread"]',
+  'div[class*="ReviewThread"]',
+  "#files", // legacy
+];
+
+/**
+ * Which praise list an editor should draw from, or `undefined` if it should be
+ * left alone.
+ *
+ * The textarea selectors above match any Primer markdown editor on the page, so
+ * membership of one of these two regions is what limits us to review and diff
+ * comments. Without it we would also decorate the PR description editor and
+ * edit-in-place boxes on the conversation tab, none of which are praise.
+ */
+export function praiseContext(
+  textarea: HTMLTextAreaElement,
+): "reviews" | "comments" | undefined {
+  if (textarea.closest(reviewDialog.join(","))) {
+    return "reviews";
+  }
+
+  if (textarea.closest(diffCommentEditor.join(","))) {
+    return "comments";
+  }
+
+  // Legacy review summary, which sits outside both regions.
+  if (textarea.id === "pull_request_review_body") {
+    return "reviews";
+  }
+
+  return undefined;
+}
+
+/**
  * The button we sit to the left of.
  *
  * Cancel has no id, aria-label or data-testid, so we match the accessible name.
- *
- * Requiring Cancel specifically -- rather than accepting any of the editor's
- * buttons -- is also what keeps the praise button out of editors it doesn't
- * belong in. The PR conversation composer ("Add a comment") has only
- * "Close pull request" and "Comment", no Cancel, because it is always open
- * rather than opened for a single reply. Praise is for reviews and diff
- * comments, so no Cancel means no button.
+ * Insisting on Cancel rather than any of the editor's buttons also keeps us out
+ * of always-open composers, which have no Cancel because they were never opened
+ * for a single reply.
  */
 const anchorLabel = "Cancel";
 

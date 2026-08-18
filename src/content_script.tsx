@@ -3,7 +3,7 @@ import observe from "./lib/selector-observer";
 import {
   findInsertionPoint,
   markdownTextarea,
-  reviewDialog,
+  praiseContext,
 } from "./lib/selectors";
 
 const buttonClass = "sentry-pr-praise-button";
@@ -117,6 +117,16 @@ function addPraiseButton(textarea: HTMLTextAreaElement, attempt = 0): void {
     return;
   }
 
+  // The textarea selectors match every markdown editor on the page, so check
+  // this one is a review or diff comment before going further. Anything else --
+  // the PR description, editing an existing conversation comment -- is left
+  // alone, including its retries.
+  const context = praiseContext(textarea);
+  if (!context) {
+    decorated.add(textarea);
+    return;
+  }
+
   // The review dialog mounts its footer after the textarea, and the observer
   // only ever reports an element once, so retry rather than skipping this
   // editor forever. Still bail rather than fall back to a bad position: a
@@ -139,8 +149,8 @@ function addPraiseButton(textarea: HTMLTextAreaElement, attempt = 0): void {
 
   decorated.add(textarea);
 
-  const isReview = Boolean(textarea.closest(reviewDialog.join(",")));
-  const praises = isReview ? () => reviewPraises : () => commentPraises;
+  const praises =
+    context === "reviews" ? () => reviewPraises : () => commentPraises;
 
   const button = createButton(before);
   button.addEventListener("click", () => {
