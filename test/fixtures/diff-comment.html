@@ -1,0 +1,71 @@
+<!--
+  SYNTHETIC FIXTURE -- not captured from GitHub.
+
+  Hand-written from the structure described in src/lib/selectors.ts. It can show
+  that our placement logic behaves as designed; it cannot show that the selectors
+  match what GitHub actually serves. Replace with a real capture -- see README.md.
+
+  Two editors on purpose: the insertion walk must find each editor's own Cancel,
+  which a single-editor fixture cannot demonstrate.
+
+  The footer div below is named `CommentEditorFooter-module__buttonRow`, not
+  `AddCommentEditor-module__buttonRow`, deliberately: `div[class*="AddCommentEditor"]`
+  is a substring match, so a footer whose class also contained "AddCommentEditor"
+  would match it too, giving two hits per editor instead of one.
+-->
+<!doctype html>
+<html lang="en">
+  <body>
+    <div data-testid="diff-view">
+      <button type="button" class="Button-module__button__m0n1o">
+        <span data-component="text">Submit review</span>
+      </button>
+
+      <div class="DiffLine-module__row__s4t5u" data-line="12">
+        <div class="AddCommentEditor-module__container__v6w7x" data-editor="1">
+          <div class="MarkdownEditor-module__container__d4e5f">
+            <textarea
+              class="MarkdownInput-module__textArea__a1b2c"
+              placeholder="Leave a comment"
+            ></textarea>
+          </div>
+          <div class="CommentEditorFooter-module__buttonRow__y8z9a">
+            <button type="button" class="Button-module__button__m0n1o">
+              <span data-component="text">Cancel</span>
+            </button>
+            <button
+              type="button"
+              class="Button-module__button__m0n1o"
+              data-variant="primary"
+            >
+              <span data-component="text">Add single comment</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="DiffLine-module__row__s4t5u" data-line="34">
+        <div class="AddCommentEditor-module__container__v6w7x" data-editor="2">
+          <div class="MarkdownEditor-module__container__d4e5f">
+            <textarea
+              class="MarkdownInput-module__textArea__a1b2c"
+              placeholder="Leave a comment"
+            ></textarea>
+          </div>
+          <div class="CommentEditorFooter-module__buttonRow__y8z9a">
+            <button type="button" class="Button-module__button__m0n1o">
+              <span data-component="text">Cancel</span>
+            </button>
+            <button
+              type="button"
+              class="Button-module__button__m0n1o"
+              data-variant="primary"
+            >
+              <span data-component="text">Add single comment</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
