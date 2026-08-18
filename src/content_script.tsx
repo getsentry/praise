@@ -10,7 +10,7 @@ function loadPraises() {
       reviews: [],
       comments: [],
     },
-    (items) => {
+    (items: { reviews: string[]; comments: string[] }) => {
       reviewPraises = items.reviews;
       commentPraises = items.comments;
     },
