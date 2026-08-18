@@ -34,11 +34,15 @@ A pre-commit hook automatically formats and fixes staged files. To skip it:
 git commit --no-verify
 ```
 
-To prevent the initial reformat commit from polluting `git blame`, configure blame to ignore it locally (one-time setup):
+To prevent mechanical reformat commits from polluting `git blame`, configure blame to ignore them locally (one-time setup):
 
 ```sh
 git config blame.ignoreRevsFile .git-blame-ignore-revs
 ```
+
+`.git-blame-ignore-revs` lists commit SHAs, so a pull request that adds an entry
+to it must be merged with a merge commit or a rebase. A squash-merge rewrites
+those commits and leaves the file pointing at SHAs that no longer exist.
 
 ## Import as Visual Studio Code project
 
