@@ -45,6 +45,7 @@ Upstream's settings verbatim, with local ignore patterns:
   "printWidth": 120,
   "proseWrap": "always",
   "singleQuote": true,
+  "sortPackageJson": false,
   "trailingComma": "all",
   "ignorePatterns": ["dist/**", "node_modules/**", "package-lock.json"],
   "overrides": [{ "files": ["*.md", "*.mdc"], "options": { "proseWrap": "preserve" } }]
@@ -52,6 +53,13 @@ Upstream's settings verbatim, with local ignore patterns:
 ```
 
 Formatting output is therefore byte-identical to `sentry-javascript`.
+
+Upstream sets `experimentalSortPackageJson: false`. In oxfmt `0.63` that option
+was renamed to `sortPackageJson`, defaulting to `true`; the old key is silently
+ignored (unknown keys don't error), which let the formatter start reordering
+`package.json`'s top-level keys. We use the current name, `sortPackageJson:
+false`, to preserve upstream's actual intent — leave `package.json` key order
+alone.
 
 **`package-lock.json` MUST be in `ignorePatterns`.** Verified: `oxfmt` rewrites
 it from 6525 to 6275 lines, and npm rewrites it back on the next install —
@@ -140,8 +148,8 @@ failed.
 
 ```json
 "lint-staged": {
-  "*.{ts,tsx,js,jsx,mjs,cjs}": ["oxfmt --write", "oxlint --fix"],
-  "*.{json,md,css,html}": ["oxfmt --write"]
+  "*.{ts,tsx,js,jsx,mjs,cjs}": ["oxfmt --write --no-error-on-unmatched-pattern", "oxlint --fix"],
+  "*.{json,md,css,html,yml,yaml}": ["oxfmt --write --no-error-on-unmatched-pattern"]
 }
 ```
 
@@ -149,11 +157,18 @@ The hook's `oxlint --fix` deliberately omits `--deny-warnings`: the hook should
 auto-fix and let warnings through so a commit is never blocked on a warning,
 while CI holds the strict line. Non-JS globs get formatter-only treatment because
 `oxlint` has nothing to say
-about CSS, HTML, or JSON. Verified: `oxlint` accepts explicit file paths with
-`typeAware: true` and exits 0; a single-file run takes 0.14s, so the hook is
-imperceptible. lint-staged re-stages what the tools rewrite, so auto-fixes land
-in the commit being made. The escape hatch is `git commit --no-verify`, and CI
-still catches anything skipped that way.
+about CSS, HTML, JSON, or YAML. `yml`/`yaml` are included because `oxfmt`
+formats the workflow files under `.github/workflows/` and CI's `format:check`
+covers them; without the extension here, a misformatted workflow file would
+pass the hook and only fail in CI. `--no-error-on-unmatched-pattern` is needed
+because `.oxfmtrc.json`'s `ignorePatterns` excludes `package-lock.json`: without
+the flag, staging only `package-lock.json` (e.g. after a dependency bump) passes
+lint-staged a path that resolves to zero targets, and `oxfmt` exits 2 with
+"Expected at least one target file," blocking the commit. Verified: `oxlint`
+accepts explicit file paths with `typeAware: true` and exits 0; a single-file
+run takes 0.14s, so the hook is imperceptible. lint-staged re-stages what the
+tools rewrite, so auto-fixes land in the commit being made. The escape hatch is
+`git commit --no-verify`, and CI still catches anything skipped that way.
 
 ### 7. Lint violations to fix
 

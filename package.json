@@ -51,11 +51,11 @@
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs}": [
-      "oxfmt --write",
+      "oxfmt --write --no-error-on-unmatched-pattern",
       "oxlint --fix"
     ],
-    "*.{json,md,css,html}": [
-      "oxfmt --write"
+    "*.{json,md,css,html,yml,yaml}": [
+      "oxfmt --write --no-error-on-unmatched-pattern"
     ]
   },
   "allowScripts": {
