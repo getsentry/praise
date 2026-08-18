@@ -1,4 +1,3 @@
-const webpack = require("webpack");
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
 const srcDir = path.join(__dirname, "..", "src");
@@ -6,12 +5,13 @@ const srcDir = path.join(__dirname, "..", "src");
 module.exports = {
     entry: {
       options: path.join(srcDir, 'options.tsx'),
-      background: path.join(srcDir, 'background.ts',),
+      background: path.join(srcDir, 'background.ts'),
       content_script: path.join(srcDir, 'content_script.tsx'),
     },
     output: {
         path: path.join(__dirname, "../dist/js"),
         filename: "[name].js",
+        clean: true,
     },
     optimization: {
         splitChunks: {
@@ -23,8 +23,17 @@ module.exports = {
         rules: [
             {
                 test: /\.tsx?$/,
-                use: "ts-loader",
                 exclude: /node_modules/,
+                use: {
+                    loader: "swc-loader",
+                    options: {
+                        jsc: {
+                            parser: { syntax: "typescript", tsx: true },
+                            transform: { react: { runtime: "automatic" } },
+                            target: "es2020",
+                        },
+                    },
+                },
             },
         ],
     },
@@ -34,7 +43,6 @@ module.exports = {
     plugins: [
         new CopyPlugin({
             patterns: [{ from: ".", to: "../", context: "public" }],
-            options: {},
         }),
     ],
 };

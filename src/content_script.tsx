@@ -1,11 +1,11 @@
-let commentPraises: [string];
-let reviewPraises: [string];
+let commentPraises: string[];
+let reviewPraises: string[];
 
 loadPraises();
 observeDOMChanges();
 
 function loadPraises() {
-  chrome.storage.sync.get(
+  chrome.storage.sync.get<{ reviews: string[]; comments: string[] }>(
     {
       reviews: [],
       comments: [],
@@ -13,7 +13,7 @@ function loadPraises() {
     (items) => {
       reviewPraises = items.reviews;
       commentPraises = items.comments;
-    }
+    },
   );
 }
 
@@ -54,7 +54,7 @@ function setUpComments() {
 
 function setUpReview() {
   let reviewTextarea = document.getElementById(
-    "pull_request_review_body"
+    "pull_request_review_body",
   ) as HTMLTextAreaElement;
 
   if (reviewTextarea != null) {
@@ -64,7 +64,7 @@ function setUpReview() {
 
 function setUpPraiseButton(
   textarea: HTMLTextAreaElement,
-  comments: { (): string[] }
+  comments: { (): string[] },
 ) {
   let span = document.createElement("span");
   span.innerHTML = "PR";
@@ -94,7 +94,7 @@ function setPraise(textarea: HTMLTextAreaElement, praises: string[]) {
   textarea.focus();
   textarea.value = newText;
   textarea.dispatchEvent(
-    new CustomEvent("input", { detail: { "sentry-ignore-input": true } })
+    new CustomEvent("input", { detail: { "sentry-ignore-input": true } }),
   );
 }
 
