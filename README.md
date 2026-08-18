@@ -1,4 +1,4 @@
-# PRaise
+# PRaise PR
 
 Chrome Extension for giving praise to GitHub PRs with one click.
 
