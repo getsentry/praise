@@ -13,10 +13,23 @@ let defaultComments = [
   "Oh yeah 💪",
 ];
 
-chrome.runtime.onInstalled.addListener(function () {
-  console.log("installed");
-  chrome.storage.sync.set({
-    reviews: defaultReviews,
-    comments: defaultComments,
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason !== chrome.runtime.OnInstalledReason.INSTALL) {
+    return;
+  }
+
+  chrome.storage.sync.get(["reviews", "comments"], (items) => {
+    const seed: { reviews?: string[]; comments?: string[] } = {};
+
+    if (!Array.isArray(items.reviews) || items.reviews.length === 0) {
+      seed.reviews = defaultReviews;
+    }
+    if (!Array.isArray(items.comments) || items.comments.length === 0) {
+      seed.comments = defaultComments;
+    }
+
+    if (Object.keys(seed).length > 0) {
+      chrome.storage.sync.set(seed);
+    }
   });
 });
