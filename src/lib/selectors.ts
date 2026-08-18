@@ -131,8 +131,15 @@ export type InsertionPoint = {
  * both the textarea and Cancel. Stopping here keeps us from reaching further out
  * and grabbing a button that belongs to the page, such as the diff toolbar's own
  * "Submit review".
+ *
+ * These are the same regions `praiseContext()` admits, so the walk can never
+ * leave the editor that let us in. `#files` on its own would not do: on React
+ * pages the inline editor is not inside a `form` or `#files`, so without the
+ * per-editor roots the walk could climb into a *neighbouring* editor and take
+ * its Cancel -- which is likely exactly when a footer is still mounting and the
+ * editor's own Cancel has not appeared yet.
  */
-const editorBoundary = [...reviewDialog, "form", "#files"];
+const editorBoundary = [...reviewDialog, ...diffCommentEditor, "form"];
 
 /**
  * Finds where to put our button: immediately before the editor's Cancel button.
