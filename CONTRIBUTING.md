@@ -68,7 +68,7 @@ Selector and placement tests run in Jest against jsdom, using HTML fixtures
 hand-written from the structure documented in `src/lib/selectors.ts`. They are
 currently synthetic -- see `test/fixtures/README.md` for provenance and how to
 replace them with real captures. They fail when the praise button stops
-landing beside each editor's Cancel button. There are 25 tests across 4 suites.
+landing beside each editor's Cancel button.
 
 They do not detect GitHub redesigning its PR pages -- the fixtures are frozen
 snapshots. See `test/fixtures/README.md` for what that means and how to refresh

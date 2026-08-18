@@ -1,6 +1,3 @@
-import { setFieldText } from "text-field-edit";
-import { findInsertionPoint, praiseContext } from "./selectors";
-
 /**
  * Places the praise button inside a comment editor.
  *
@@ -8,6 +5,9 @@ import { findInsertionPoint, praiseContext } from "./selectors";
  * script runs its storage and observer wiring at module load, which needs a
  * browser. Everything here is plain DOM work against an editor it is handed.
  */
+
+import { setFieldText } from "text-field-edit";
+import { findInsertionPoint, praiseContext } from "./selectors";
 
 export const buttonClass = "sentry-pr-praise-button";
 

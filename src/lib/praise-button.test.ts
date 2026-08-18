@@ -114,15 +114,23 @@ describe("writing praises", () => {
   test("clicking again can produce a different praise", () => {
     const button = buttons()[0];
 
+    // setPraise falls back to praises[0] after 10 failed attempts at picking
+    // something different from the current value, so a real repeat is
+    // possible -- roughly 1 in 1990 runs with two praises, empirically. Stub
+    // Math.random so the two clicks provably land on different praises
+    // instead of trusting chance.
+    const random = jest.spyOn(Math, "random");
+    random.mockReturnValueOnce(0).mockReturnValueOnce(0.9);
+
     button.click();
     const first = textarea.value;
 
-    // setPraise retries up to 10 times for a value different from the current
-    // one, so with two praises available a change is effectively certain.
     button.click();
 
     expect(textarea.value).not.toBe(first);
     expect(commentPraises).toContain(textarea.value);
+
+    random.mockRestore();
   });
 
   test("our own write leaves the button visible", () => {
