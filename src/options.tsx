@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import TextareaAutosize from "react-textarea-autosize";
 
 const Options = () => {
-  const [reviews, setReviews] = useState<[string]>();
-  const [comments, setComments] = useState<[string]>();
+  const [reviews, setReviews] = useState<string[]>();
+  const [comments, setComments] = useState<string[]>();
 
   useEffect(() => {
     chrome.storage.sync.get(
@@ -12,27 +12,27 @@ const Options = () => {
         reviews: [],
         comments: [],
       },
-      (items) => {
+      (items: { reviews: string[]; comments: string[] }) => {
         setReviews(items.reviews);
         setComments(items.comments);
-      }
+      },
     );
   }, []);
-  
+
   function reviewsChanged(reviewText: string) {
-    let reviews = split(reviewText)
+    let reviews = split(reviewText);
     setReviews(reviews);
-    chrome.storage.sync.set({ reviews: reviews } );
+    chrome.storage.sync.set({ reviews: reviews });
   }
 
   function commentsChanged(commentText: string) {
-    let comments = split(commentText)
-    setComments(comments)
-    chrome.storage.sync.set({ comments: comments } );
+    let comments = split(commentText);
+    setComments(comments);
+    chrome.storage.sync.set({ comments: comments });
   }
 
-  function split(value: string): [string] {
-    return value.split(/\n/) as [string];
+  function split(value: string): string[] {
+    return value.split(/\n/);
   }
 
   return (
@@ -41,26 +41,25 @@ const Options = () => {
       <TextareaAutosize
         className="textarea"
         onChange={(event) => {
-          reviewsChanged(event.target.value)
+          reviewsChanged(event.target.value);
         }}
-        value={reviews?.join('\n')}
+        value={reviews?.join("\n")}
       />
 
       <h2>Comment Praises</h2>
       <TextareaAutosize
         className="textarea"
         onChange={(event) => {
-          commentsChanged(event.target.value)
+          commentsChanged(event.target.value);
         }}
-        value={comments?.join('\n')}
+        value={comments?.join("\n")}
       />
     </>
   );
 };
 
-ReactDOM.render(
+createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Options />
   </React.StrictMode>,
-  document.getElementById("root")
 );

@@ -1,8 +1,7 @@
-let defaultReviews = [
-  "LGTM 🚀", "Ship it 🚢", "RSLGTM 🏆", "Good job 👏"
-]
+let defaultReviews = ["LGTM 🚀", "Ship it 🚢", "RSLGTM 🏆", "Good job 👏"];
 
-let defaultComments = ["This is awesome 👏 ",
+let defaultComments = [
+  "This is awesome 👏 ",
   "Thanks for improving this 🚢:",
   "I like this a lot 🚀",
   "You deserve a 🥇",
@@ -10,15 +9,14 @@ let defaultComments = ["This is awesome 👏 ",
   "🏆 Developer of the year 🏆",
   "This code makes my day ☀️",
   "You rock 🎸. Thanks.",
-  "🌮  to you!", 
-  "Oh yeah 💪"
-]
+  "🌮  to you!",
+  "Oh yeah 💪",
+];
 
-chrome.runtime.onInstalled.addListener(function() {
-  console.log("installed")
+chrome.runtime.onInstalled.addListener(function () {
+  console.log("installed");
   chrome.storage.sync.set({
     reviews: defaultReviews,
-    comments: defaultComments
+    comments: defaultComments,
   });
 });
-
