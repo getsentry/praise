@@ -18,9 +18,13 @@
     "url": "https://github.com/chibat/chrome-extension-typescript-starter.git"
   },
   "dependencies": {
+    "code-tag": "^1.2.0",
+    "onetime": "^8.0.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "react-textarea-autosize": "^8.5.9"
+    "react-textarea-autosize": "^8.5.9",
+    "select-dom": "^10.1.0",
+    "text-field-edit": "^4.1.1"
   },
   "devDependencies": {
     "@swc/core": "^1.16.0",
