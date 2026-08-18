@@ -1,10 +1,11 @@
 # Test fixtures
 
-HTML snapshots of GitHub PR pages, used by `src/lib/selectors.test.ts` and
-`src/lib/praise-button.test.ts` to check the praise button still lands beside
-each editor's Cancel button.
+HTML fixtures representing GitHub PR pages, used by `src/lib/selectors.test.ts`
+and `src/lib/praise-button.test.ts` to check the praise button still lands
+beside each editor's Cancel button. See the table below for where each one
+came from.
 
-| File | State captured | Source | Captured |
+| File | State represented | Source | Captured |
 |---|---|---|---|
 | `review-dialog.html` | "Finish your review" dialog open | synthetic | — |
 | `diff-comment.html` | Inline diff comment editor open, two editors | synthetic | — |
