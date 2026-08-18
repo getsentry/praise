@@ -5,7 +5,7 @@
 
 ## Problem
 
-The extension injects a "PR" button into GitHub's PR review dialog and inline
+The extension injects a "Praise" button into GitHub's PR review dialog and inline
 diff comment editors. Placement depends on selectors in `src/lib/selectors.ts`
 that target Primer React markup whose CSS-module class names carry a hash
 rotating on every GitHub deploy. Nothing currently tests that the button lands

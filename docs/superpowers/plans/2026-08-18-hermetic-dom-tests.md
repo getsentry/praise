@@ -20,7 +20,7 @@
 - **`document.execCommand` does not exist in jsdom**, so `setFieldText` throws `TypeError: document.execCommand is not a function`. Task 2 builds the stub that fixes this. Every test touching `setPraise` must install it.
 - **`class*=` and `:where()` selectors do work in jsdom**, so `selectors.ts` needs no changes to be testable.
 - **Behaviour must not change.** Task 1 is a pure refactor. Do not fix, improve, or restyle the placement logic while moving it — if you spot a genuine bug, note it and keep going.
-- **Naming:** the button class is `sentry-pr-praise-button`, the label is `PR`, the anchor caption is `Cancel`. Exact strings.
+- **Naming:** the button class is `sentry-pr-praise-button`, the label is `Praise`, the anchor caption is `Cancel`. Exact strings.
 - **Style:** run `npm run style` (Prettier) before each commit. Match the existing comment voice in `src/lib/selectors.ts` — explain _why_, use `--` for asides, avoid restating the code.
 - **Commit messages:** imperative mood, capitalized, no type prefix — matching this repo's history (`Scope praise button to review and diff comments`, `Add MIT LICENSE file`). Do **not** use Conventional Commits.
 
@@ -250,8 +250,8 @@ Expected: PASS — `tsc --noEmit` clean, webpack writes `dist/js/content_script.
 This task has no automated gate, so check it by hand — the refactor is only correct if the button still works:
 
 1. `chrome://extensions` → reload the unpacked `dist` folder.
-2. Open any GitHub PR → **Files changed** → click a diff line's `+` to open an inline comment editor. Confirm the `PR` button appears immediately left of **Cancel**, and clicking it inserts a praise.
-3. Click **Review changes** → **Comment** to open the review dialog. Confirm the `PR` button appears there too, drawing from the reviews list.
+2. Open any GitHub PR → **Files changed** → click a diff line's `+` to open an inline comment editor. Confirm the `Praise` button appears immediately left of **Cancel**, and clicking it inserts a praise.
+3. Click **Review changes** → **Comment** to open the review dialog. Confirm the `Praise` button appears there too, drawing from the reviews list.
 4. Type manually in either editor and confirm the button hides.
 
 If you cannot run Chrome, say so explicitly in your report rather than claiming the step passed.
@@ -811,7 +811,7 @@ describe('in the review dialog', () => {
 
     expect(buttons()).toHaveLength(1);
     const button = buttons()[0];
-    expect(label(button)).toBe('PR');
+    expect(label(button)).toBe('Praise');
     expect(label(button.nextElementSibling)).toBe('Cancel');
   });
 
@@ -1106,7 +1106,7 @@ git commit -m "Document fixture provenance and the capture procedure"
 - [ ] `npm test` passes: 4 suites, 24 tests.
 - [ ] `npm run build` passes — clean `tsc --noEmit` and a written bundle.
 - [ ] `src/__tests__/sum.ts` is gone.
-- [ ] The extension still works when loaded unpacked in Chrome: the `PR` button appears left of `Cancel` in both a diff comment editor and the review dialog, clicking inserts a praise, and typing manually hides it.
+- [ ] The extension still works when loaded unpacked in Chrome: the `Praise` button appears left of `Cancel` in both a diff comment editor and the review dialog, clicking inserts a praise, and typing manually hides it.
 - [ ] `test/fixtures/README.md` records each fixture's provenance, and any synthetic fixture is labelled as such in both the README and its own header comment.
 - [ ] No new dependency beyond `jest-environment-jsdom`.
 - [ ] No test touches the network.

@@ -155,7 +155,7 @@ function addPraiseButton(textarea: HTMLTextAreaElement, attempt = 0): void {
  * instead of hardcoding hashed class names, which go stale on every deploy.
  */
 function createButton(neighbour: HTMLElement): HTMLButtonElement {
-  const label = 'PR';
+  const label = 'Praise';
   const template =
     neighbour.tagName === 'BUTTON' ? (neighbour as HTMLButtonElement) : neighbour.querySelector('button');
 
