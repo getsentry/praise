@@ -9,7 +9,8 @@
     "clean": "rimraf dist",
     "test": "jest",
     "typecheck": "tsc --noEmit",
-    "style": "prettier --write \"src/**/*.{ts,tsx}\""
+    "style": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "lint": "prettier --check \"src/**/*.{ts,tsx}\""
   },
   "author": "",
   "license": "MIT",
