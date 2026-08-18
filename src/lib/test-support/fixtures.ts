@@ -4,7 +4,7 @@ import { join } from "node:path";
 export type FixtureName = "review-dialog" | "diff-comment";
 
 /**
- * Replaces the document with a captured GitHub page.
+ * Replaces the document with a fixture page.
  *
  * `documentElement.innerHTML` rather than `document.write`, which refined-github
  * uses: `write` needs an open parser, and re-running it across tests in one
