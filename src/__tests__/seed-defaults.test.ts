@@ -1,8 +1,24 @@
-import { computeSeed, DEFAULT_COMMENTS, DEFAULT_REVIEWS, type StoredSettings } from '../lib/seed-defaults';
+import {
+  computeSeed,
+  DEFAULT_APPROVE_COMMENT,
+  DEFAULT_APPROVE_GIFS,
+  DEFAULT_COMMENTS,
+  type StoredSettings,
+} from '../lib/seed-defaults';
 
-describe('DEFAULT_REVIEWS / DEFAULT_COMMENTS', () => {
-  test('DEFAULT_REVIEWS holds the single canonical review body', () => {
-    expect(DEFAULT_REVIEWS).toEqual(['LGTM 🚀']);
+/**
+ * Settings that need no seeding, so each case below can assert on the exact set
+ * of keys the patch carries.
+ */
+const SEEDED = {
+  approveComment: 'Nice one',
+  approveGifs: ['https://media.giphy.com/media/abc/giphy.gif'],
+  approveGifsEnabled: false,
+};
+
+describe('DEFAULT_APPROVE_COMMENT / DEFAULT_COMMENTS / DEFAULT_APPROVE_GIFS', () => {
+  test('DEFAULT_APPROVE_COMMENT is the single canonical approve body', () => {
+    expect(DEFAULT_APPROVE_COMMENT).toBe('LGTM 🚀');
   });
 
   test('DEFAULT_COMMENTS holds ten non-empty strings', () => {
@@ -12,78 +28,85 @@ describe('DEFAULT_REVIEWS / DEFAULT_COMMENTS', () => {
       expect(comment.length).toBeGreaterThan(0);
     }
   });
+
+  test('DEFAULT_APPROVE_GIFS holds direct giphy media urls', () => {
+    expect(DEFAULT_APPROVE_GIFS.length).toBeGreaterThan(0);
+    for (const gif of DEFAULT_APPROVE_GIFS) {
+      expect(gif).toMatch(/^https:\/\/media\.giphy\.com\/media\/[\w-]+\/giphy\.gif$/);
+    }
+  });
+
+  test('DEFAULT_APPROVE_GIFS holds no duplicates', () => {
+    expect(new Set(DEFAULT_APPROVE_GIFS).size).toBe(DEFAULT_APPROVE_GIFS.length);
+  });
 });
 
 describe('computeSeed', () => {
-  test('seeds both keys for empty storage', () => {
+  test('seeds every key for empty storage', () => {
     const patch = computeSeed({});
 
-    expect(Object.keys(patch).sort()).toEqual(['comments', 'reviews']);
-    expect(patch.reviews).toEqual(DEFAULT_REVIEWS);
+    expect(Object.keys(patch).sort()).toEqual(['approveComment', 'approveGifs', 'approveGifsEnabled', 'comments']);
+    expect(patch.approveComment).toBe(DEFAULT_APPROVE_COMMENT);
     expect(patch.comments).toEqual(DEFAULT_COMMENTS);
+    expect(patch.approveGifs).toEqual(DEFAULT_APPROVE_GIFS);
+    expect(patch.approveGifsEnabled).toBe(true);
   });
 
-  test('seeds nothing when both keys hold non-empty arrays', () => {
-    const patch = computeSeed({ reviews: ['nice'], comments: ['great'] });
+  test('seeds nothing when every key already holds a usable value', () => {
+    const patch = computeSeed({ comments: ['great'], ...SEEDED });
 
     expect(Object.keys(patch)).toEqual([]);
     expect(patch).toEqual({});
   });
 
-  test('seeds only comments when reviews is populated', () => {
-    const patch = computeSeed({ reviews: ['nice'] });
+  test('seeds only comments when the approve comment is set', () => {
+    const patch = computeSeed({ ...SEEDED });
 
     expect(Object.keys(patch)).toEqual(['comments']);
     expect(patch.comments).toEqual(DEFAULT_COMMENTS);
   });
 
-  test('seeds only reviews when comments is populated', () => {
-    const patch = computeSeed({ comments: ['great'] });
+  test('seeds only the approve comment when comments are set', () => {
+    const patch = computeSeed({
+      comments: ['great'],
+      approveGifs: SEEDED.approveGifs,
+      approveGifsEnabled: false,
+    });
 
-    expect(Object.keys(patch)).toEqual(['reviews']);
-    expect(patch.reviews).toEqual(DEFAULT_REVIEWS);
+    expect(Object.keys(patch)).toEqual(['approveComment']);
+    expect(patch.approveComment).toBe(DEFAULT_APPROVE_COMMENT);
   });
 
-  test('seeds both keys when both hold empty arrays', () => {
-    const patch = computeSeed({ reviews: [], comments: [] });
+  test('seeds comments holding an empty array', () => {
+    const patch = computeSeed({ comments: [], ...SEEDED });
 
-    expect(Object.keys(patch).sort()).toEqual(['comments', 'reviews']);
-    expect(patch.reviews).toEqual(DEFAULT_REVIEWS);
+    expect(Object.keys(patch)).toEqual(['comments']);
     expect(patch.comments).toEqual(DEFAULT_COMMENTS);
   });
 
-  test('seeds keys holding strings instead of arrays', () => {
-    const stored: StoredSettings = { reviews: 'LGTM', comments: '' };
-    const patch = computeSeed(stored);
+  test('seeds keys holding the wrong type', () => {
+    for (const stored of [
+      { approveComment: 42, comments: '' },
+      { approveComment: null, comments: undefined },
+      { approveComment: ['LGTM'], comments: 42 },
+      { approveComment: {}, comments: {} },
+    ] as StoredSettings[]) {
+      const patch = computeSeed({ approveGifs: SEEDED.approveGifs, approveGifsEnabled: false, ...stored });
 
-    expect(Object.keys(patch).sort()).toEqual(['comments', 'reviews']);
-    expect(patch.reviews).toEqual(DEFAULT_REVIEWS);
-    expect(patch.comments).toEqual(DEFAULT_COMMENTS);
+      expect(Object.keys(patch).sort()).toEqual(['approveComment', 'comments']);
+      expect(patch.approveComment).toBe(DEFAULT_APPROVE_COMMENT);
+      expect(patch.comments).toEqual(DEFAULT_COMMENTS);
+    }
   });
 
-  test('seeds keys holding null or undefined', () => {
-    const stored: StoredSettings = { reviews: null, comments: undefined };
-    const patch = computeSeed(stored);
+  test('treats a blank approve comment as unseeded', () => {
+    const patch = computeSeed({ comments: ['great'], ...SEEDED, approveComment: '   ' });
 
-    expect(Object.keys(patch).sort()).toEqual(['comments', 'reviews']);
-    expect(patch.reviews).toEqual(DEFAULT_REVIEWS);
-    expect(patch.comments).toEqual(DEFAULT_COMMENTS);
+    expect(patch.approveComment).toBe(DEFAULT_APPROVE_COMMENT);
   });
 
-  test('seeds keys holding objects, numbers or booleans', () => {
-    const stored: StoredSettings = { reviews: { 0: 'LGTM', length: 1 }, comments: 42 };
-    const patch = computeSeed(stored);
-
-    expect(Object.keys(patch).sort()).toEqual(['comments', 'reviews']);
-    expect(patch.reviews).toEqual(DEFAULT_REVIEWS);
-    expect(patch.comments).toEqual(DEFAULT_COMMENTS);
-
-    const other = computeSeed({ reviews: true, comments: {} } as StoredSettings);
-    expect(Object.keys(other).sort()).toEqual(['comments', 'reviews']);
-  });
-
-  test('a populated key stays absent even when the other is garbage', () => {
-    const patch = computeSeed({ reviews: ['nice'], comments: 'not an array' });
+  test('a populated key stays absent even when another is garbage', () => {
+    const patch = computeSeed({ comments: 'not an array', ...SEEDED });
 
     expect(Object.keys(patch)).toEqual(['comments']);
     expect(patch.comments).toEqual(DEFAULT_COMMENTS);
@@ -104,31 +127,117 @@ describe('computeSeed', () => {
 
   test('repeated calls return equal patches', () => {
     expect(computeSeed({})).toEqual(computeSeed({}));
-    expect(computeSeed({}).reviews).toEqual(DEFAULT_REVIEWS);
+    expect(computeSeed({}).approveComment).toBe(DEFAULT_APPROVE_COMMENT);
     expect(computeSeed({}).comments).toEqual(DEFAULT_COMMENTS);
+    expect(computeSeed({}).approveGifs).toEqual(DEFAULT_APPROVE_GIFS);
   });
 
   test('returns copies, so editing a patch leaves the defaults intact', () => {
     const patch = computeSeed({});
 
-    expect(patch.reviews).not.toBe(DEFAULT_REVIEWS);
     expect(patch.comments).not.toBe(DEFAULT_COMMENTS);
+    expect(patch.approveGifs).not.toBe(DEFAULT_APPROVE_GIFS);
 
-    patch.reviews?.push('mutated');
     patch.comments?.push('mutated');
+    patch.approveGifs?.push('mutated');
 
-    expect(DEFAULT_REVIEWS).not.toContain('mutated');
     expect(DEFAULT_COMMENTS).not.toContain('mutated');
-    expect(computeSeed({}).reviews).toEqual(DEFAULT_REVIEWS);
+    expect(DEFAULT_APPROVE_GIFS).not.toContain('mutated');
     expect(computeSeed({}).comments).toEqual(DEFAULT_COMMENTS);
+    expect(computeSeed({}).approveGifs).toEqual(DEFAULT_APPROVE_GIFS);
   });
 
   test('returned arrays carry the defaults contents', () => {
     const patch = computeSeed({});
 
-    expect(patch.reviews).toEqual([...DEFAULT_REVIEWS]);
     expect(patch.comments).toEqual([...DEFAULT_COMMENTS]);
-    expect(patch.reviews).toHaveLength(DEFAULT_REVIEWS.length);
+    expect(patch.approveGifs).toEqual([...DEFAULT_APPROVE_GIFS]);
     expect(patch.comments).toHaveLength(DEFAULT_COMMENTS.length);
+    expect(patch.approveGifs).toHaveLength(DEFAULT_APPROVE_GIFS.length);
+  });
+});
+
+describe('computeSeed / migrating the old reviews list', () => {
+  const rest = { comments: ['great'], approveGifs: SEEDED.approveGifs, approveGifsEnabled: false };
+
+  test('carries a customised praise over from the old list', () => {
+    const patch = computeSeed({ reviews: ['Beautiful work ✨', 'Ship it'], ...rest });
+
+    expect(patch.approveComment).toBe('Beautiful work ✨');
+  });
+
+  test('skips blank and non-string entries when carrying over', () => {
+    const patch = computeSeed({ reviews: [null, '', '  ', 7, 'Real praise'], ...rest } as StoredSettings);
+
+    expect(patch.approveComment).toBe('Real praise');
+  });
+
+  test('falls back to the default when the old list holds nothing usable', () => {
+    for (const reviews of [[], ['   '], [42], 'not an array', null]) {
+      const patch = computeSeed({ reviews, ...rest } as StoredSettings);
+
+      expect(patch.approveComment).toBe(DEFAULT_APPROVE_COMMENT);
+    }
+  });
+
+  /** The new key wins outright; the old list is only a fallback. */
+  test('leaves an existing approve comment alone', () => {
+    const patch = computeSeed({ reviews: ['Old praise'], approveComment: 'Current praise', ...rest });
+
+    expect(patch.approveComment).toBeUndefined();
+    expect(Object.keys(patch)).toEqual([]);
+  });
+
+  test('never writes the old key back', () => {
+    const patch = computeSeed({ reviews: ['Beautiful work ✨'], ...rest });
+
+    expect(patch).not.toHaveProperty('reviews');
+  });
+});
+
+describe('computeSeed / gif settings', () => {
+  const populated = { approveComment: 'LGTM', comments: ['great'] };
+
+  test('seeds the gif list when it is missing or empty', () => {
+    for (const stored of [{}, { approveGifs: [] }, { approveGifs: 'nope' }, { approveGifs: null }]) {
+      const patch = computeSeed({ ...populated, approveGifsEnabled: true, ...stored });
+
+      expect(patch.approveGifs).toEqual(DEFAULT_APPROVE_GIFS);
+    }
+  });
+
+  test('leaves a populated gif list alone', () => {
+    const patch = computeSeed({ ...populated, ...SEEDED });
+
+    expect(patch.approveGifs).toBeUndefined();
+  });
+
+  test('seeds the toggle to enabled when it is missing', () => {
+    const patch = computeSeed({ ...populated, approveGifs: SEEDED.approveGifs });
+
+    expect(Object.keys(patch)).toEqual(['approveGifsEnabled']);
+    expect(patch.approveGifsEnabled).toBe(true);
+  });
+
+  /** The whole point of the toggle: an explicit `false` must survive seeding. */
+  test('leaves the toggle alone when it is already false', () => {
+    const patch = computeSeed({ ...populated, ...SEEDED });
+
+    expect(patch.approveGifsEnabled).toBeUndefined();
+    expect(Object.keys(patch)).toEqual([]);
+  });
+
+  test('leaves the toggle alone when it is already true', () => {
+    const patch = computeSeed({ ...populated, approveGifs: SEEDED.approveGifs, approveGifsEnabled: true });
+
+    expect(patch.approveGifsEnabled).toBeUndefined();
+  });
+
+  test('reseeds the toggle when it holds a non-boolean', () => {
+    for (const value of ['true', 0, null, {}]) {
+      const patch = computeSeed({ ...populated, approveGifs: SEEDED.approveGifs, approveGifsEnabled: value });
+
+      expect(patch.approveGifsEnabled).toBe(true);
+    }
   });
 });

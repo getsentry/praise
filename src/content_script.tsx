@@ -1,11 +1,14 @@
 import { setFieldText } from 'text-field-edit';
+import { composePraise } from './lib/compose-praise';
 import observe from './lib/selector-observer';
 import { findInsertionPoint, markdownTextarea, praiseContext } from './lib/selectors';
 
 const buttonClass = 'sentry-pr-praise-button';
 
 let commentPraises: string[] = [];
-let reviewPraises: string[] = [];
+let approveComment = '';
+let approveGifs: string[] = [];
+let approveGifsEnabled = true;
 
 /**
  * The text we last wrote into a given textarea.
@@ -34,15 +37,21 @@ watchPraises();
 setUpObserver();
 watchNavigation();
 
+type Stored = { approveComment: string; comments: string[]; approveGifs: string[]; approveGifsEnabled: boolean };
+
 function loadPraises(): void {
-  chrome.storage.sync.get<{ reviews: string[]; comments: string[] }>(
+  chrome.storage.sync.get<Stored>(
     {
-      reviews: [],
+      approveComment: '',
       comments: [],
+      approveGifs: [],
+      approveGifsEnabled: true,
     },
-    (items: { reviews: string[]; comments: string[] }) => {
-      reviewPraises = items.reviews;
+    (items: Stored) => {
+      approveComment = items.approveComment;
       commentPraises = items.comments;
+      approveGifs = items.approveGifs;
+      approveGifsEnabled = items.approveGifsEnabled;
     },
   );
 }
@@ -54,11 +63,19 @@ function watchPraises(): void {
       return;
     }
 
-    if (changes.reviews) {
-      reviewPraises = toPraises(changes.reviews.newValue);
+    if (changes.approveComment) {
+      approveComment = typeof changes.approveComment.newValue === 'string' ? changes.approveComment.newValue : '';
     }
     if (changes.comments) {
       commentPraises = toPraises(changes.comments.newValue);
+    }
+    if (changes.approveGifs) {
+      approveGifs = toPraises(changes.approveGifs.newValue);
+    }
+    if (changes.approveGifsEnabled) {
+      // Anything that is not an explicit `false` leaves gifs on, matching the
+      // seeded default.
+      approveGifsEnabled = changes.approveGifsEnabled.newValue !== false;
     }
   });
 }
@@ -144,11 +161,16 @@ function addPraiseButton(textarea: HTMLTextAreaElement, attempt = 0): void {
 
   decorated.add(textarea);
 
-  const praises = context === 'reviews' ? () => reviewPraises : () => commentPraises;
+  // Gifs ride along with approve comments only; a diff comment stays plain text.
+  const praises =
+    context === 'reviews'
+      ? () => ({ texts: approveComment === '' ? [] : [approveComment], gifs: approveGifsEnabled ? approveGifs : [] })
+      : () => ({ texts: commentPraises, gifs: [] });
 
   const button = createButton(before);
   button.addEventListener('click', () => {
-    setPraise(textarea, praises());
+    const { texts, gifs } = praises();
+    setPraise(textarea, texts, gifs);
   });
 
   before.before(button);
@@ -211,25 +233,16 @@ function createButton(neighbour: HTMLElement): HTMLButtonElement {
 }
 
 /**
- * Sets a random praise on the textarea.
+ * Sets a random praise, and its gif when there is one, on the textarea.
  *
  * @param textarea The textarea to put the praise.
  * @param praises The praises to randomly pick.
+ * @param gifs The gif urls to randomly pick. Empty means text only.
  */
-function setPraise(textarea: HTMLTextAreaElement, praises: string[]): void {
-  if (praises.length === 0) {
+function setPraise(textarea: HTMLTextAreaElement, praises: string[], gifs: string[]): void {
+  const newText = composePraise(praises, gifs, textarea.value);
+  if (newText === '') {
     return;
-  }
-
-  let newText = praises[0];
-  // Try for a different praise than the current one, but don't spin when there
-  // is only one to choose from.
-  for (let attempt = 0; attempt < 10; attempt++) {
-    const candidate = praises[Math.floor(Math.random() * praises.length)];
-    if (candidate !== textarea.value) {
-      newText = candidate;
-      break;
-    }
   }
 
   lastWritten.set(textarea, newText);
