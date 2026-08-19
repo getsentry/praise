@@ -20,6 +20,15 @@ const lastWritten = new WeakMap<HTMLTextAreaElement, string>();
 /** Textareas we've already given a button, so re-renders don't add a second. */
 const decorated = new WeakSet<HTMLTextAreaElement>();
 
+/**
+ * Lets a re-arm cancel the previous observer.
+ *
+ * Declared above the calls below, not beside `setUpObserver`: `let` does not
+ * hoist, so a declaration further down leaves this in the temporal dead zone
+ * and `setUpObserver()` throws at module load.
+ */
+let observerController: AbortController | undefined;
+
 loadPraises();
 watchPraises();
 setUpObserver();
@@ -58,8 +67,6 @@ function watchPraises(): void {
 function toPraises(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }
-
-let observerController: AbortController | undefined;
 
 /**
  * One observer, keyed on the comment body itself.
