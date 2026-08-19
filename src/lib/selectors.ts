@@ -140,6 +140,22 @@ export type InsertionPoint = {
 const editorBoundary = [...reviewDialog, ...diffCommentEditor, 'form'];
 
 /**
+ * The one step the walk may take beyond a boundary.
+ *
+ * Only taken when the parent holds a single editor: a wrapper shared by several
+ * would let us climb out and take a neighbour's Cancel, which is the failure the
+ * boundary exists to prevent.
+ */
+function outsideBoundary(element: HTMLElement): HTMLElement | null {
+  const parent = element.parentElement;
+  if (!parent || parent.querySelectorAll('textarea').length > 1) {
+    return null;
+  }
+
+  return parent.matches(editorBoundary.join(',')) ? null : parent;
+}
+
+/**
  * Finds where to put our button: immediately before the editor's Cancel button.
  *
  * Walks up from the textarea until an ancestor contains a button we recognise,
@@ -157,8 +173,10 @@ export function findInsertionPoint(textarea: HTMLTextAreaElement): InsertionPoin
   for (let depth = 0; element && depth < 12; depth++) {
     const anchor = findAnchorButton(element);
     if (!anchor?.parentElement) {
-      // Search the boundary itself, then stop.
-      element = element.matches(boundary) ? null : element.parentElement;
+      // The inline editor keeps Cancel in a footer that is a *sibling* of the
+      // editor box, so the boundary itself never contains it -- climb one level
+      // past it, which is still this editor's own wrapper, then stop.
+      element = element.matches(boundary) ? outsideBoundary(element) : element.parentElement;
       continue;
     }
 
