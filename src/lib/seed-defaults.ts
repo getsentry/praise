@@ -51,8 +51,14 @@ export type SeedPatch = {
   approveGifsEnabled?: boolean;
 };
 
+/**
+ * A list needs seeding only when it is absent or holds something that is not a
+ * list. An empty list is a choice: seeding runs on update as well as install,
+ * so treating "empty" as "unseeded" would hand the defaults back to anyone who
+ * had deliberately deleted every entry.
+ */
 function needsSeeding(value: unknown): boolean {
-  return !Array.isArray(value) || value.length === 0;
+  return !Array.isArray(value);
 }
 
 function usableText(value: unknown): value is string {
@@ -60,9 +66,8 @@ function usableText(value: unknown): value is string {
 }
 
 /**
- * A toggle needs its own rule. The list test treats "empty" as unseeded, which
- * for a boolean would read `false` as missing and switch gifs back on for
- * anyone who deliberately turned them off.
+ * A toggle needs its own rule: `Array.isArray` would read a stored `false` as
+ * unseeded and switch gifs back on for anyone who deliberately turned them off.
  */
 function needsToggleSeeding(value: unknown): boolean {
   return typeof value !== 'boolean';

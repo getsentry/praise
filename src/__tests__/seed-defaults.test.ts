@@ -77,11 +77,11 @@ describe('computeSeed', () => {
     expect(patch.approveComment).toBe(DEFAULT_APPROVE_COMMENT);
   });
 
-  test('seeds comments holding an empty array', () => {
+  /** Seeding runs on update too, so an emptied list must stay emptied. */
+  test('leaves comments holding an empty array alone', () => {
     const patch = computeSeed({ comments: [], ...SEEDED });
 
-    expect(Object.keys(patch)).toEqual(['comments']);
-    expect(patch.comments).toEqual(DEFAULT_COMMENTS);
+    expect(Object.keys(patch)).toEqual([]);
   });
 
   test('seeds keys holding the wrong type', () => {
@@ -198,12 +198,23 @@ describe('computeSeed / migrating the old reviews list', () => {
 describe('computeSeed / gif settings', () => {
   const populated = { approveComment: 'LGTM', comments: ['great'] };
 
-  test('seeds the gif list when it is missing or empty', () => {
-    for (const stored of [{}, { approveGifs: [] }, { approveGifs: 'nope' }, { approveGifs: null }]) {
+  test('seeds the gif list when it is missing or not a list', () => {
+    for (const stored of [{}, { approveGifs: 'nope' }, { approveGifs: null }, { approveGifs: 42 }]) {
       const patch = computeSeed({ ...populated, approveGifsEnabled: true, ...stored });
 
       expect(patch.approveGifs).toEqual(DEFAULT_APPROVE_GIFS);
     }
+  });
+
+  /**
+   * The bug this guards: seeding runs on update, so treating "empty" as
+   * "unseeded" handed the defaults back to anyone who had deleted every gif.
+   */
+  test('leaves an emptied gif list empty', () => {
+    const patch = computeSeed({ ...populated, approveGifs: [], approveGifsEnabled: true });
+
+    expect(patch.approveGifs).toBeUndefined();
+    expect(Object.keys(patch)).toEqual([]);
   });
 
   test('leaves a populated gif list alone', () => {
