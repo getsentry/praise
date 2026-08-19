@@ -20,8 +20,9 @@ function pick<T>(items: T[], random: () => number): T {
   return items[Math.floor(random() * items.length)];
 }
 
-function build(text: string, gif: string | undefined): string {
-  return gif ? `${text}\n\n![${escapeAlt(text)}](${gif})` : text;
+/** @param alt Defaults to the text, which only suits a short praise. */
+function build(text: string, gif: string | undefined, alt: string = text): string {
+  return gif ? `${text}\n\n![${escapeAlt(alt)}](${gif})` : text;
 }
 
 /**
@@ -58,4 +59,80 @@ export function composePraise(
   // Only reachable when there is nothing else to offer, e.g. one praise and one
   // gif. Repeating beats writing nothing on a click the user asked for.
   return build(texts[0], usableGifs[0]);
+}
+
+/**
+ * Removes a trailing gif of ours, leaving whatever it was sitting under.
+ *
+ * Matching on shape rather than remembering the last write is what stops gifs
+ * stacking: GitHub restores an unsubmitted body as a draft, so after a reload
+ * the box already holds what we wrote. A gif you pasted yourself matches
+ * neither test and survives.
+ */
+function stripOurGif(current: string, gifs: string[], approveComment: string): string {
+  // The last image only, and only if the body ends on it. Scanning for the
+  // first would span an image of yours above ours; an image with your text
+  // below it is yours to keep.
+  const body = current.trimEnd();
+  const at = body.lastIndexOf('\n\n![');
+  const image = at === -1 ? (body.startsWith('![') ? body : undefined) : body.slice(at + 2);
+
+  // Alt text arrives escaped, so `\\.` is what lets a bracket in the praise
+  // through without ending the alt early.
+  const match = image === undefined ? null : /^!\[((?:\\.|[^\\\]])*)\]\(([^)]*)\)$/.exec(image);
+  if (!match) {
+    return current;
+  }
+
+  const [, alt, url] = match;
+
+  // Either half suffices: the url survives rewording the praise, the alt
+  // survives dropping the gif from the list.
+  if (!gifs.includes(url) && (approveComment === '' || alt !== escapeAlt(approveComment))) {
+    return current;
+  }
+
+  return at === -1 ? '' : body.slice(0, at);
+}
+
+/**
+ * Picks the body an Approve click should write, or `''` to leave the box alone.
+ *
+ * An empty box gets an ordinary praise. With your own words in it the praise
+ * would be putting words in your mouth, so only the gif goes underneath.
+ *
+ * Your words cannot be the alt text: a newline closes `![...]` early and spills
+ * the rest out as literal markdown. The praise stands in, being single-line.
+ *
+ * @param approveComment The configured praise. Empty still leaves a gif to
+ *   append under typed text.
+ * @param gifs Gif urls to choose from. Empty yields text on its own.
+ * @param current What the textarea holds now, so a second click rerolls.
+ * @param random Injected for tests; production passes nothing.
+ */
+export function composeApprove(
+  approveComment: string,
+  gifs: string[],
+  current: string,
+  random: () => number = Math.random,
+): string {
+  const usableGifs = gifs.filter(gif => gif.trim() !== '');
+  const typed = stripOurGif(current, usableGifs, approveComment);
+
+  if (typed === '' || typed === approveComment) {
+    return composePraise(approveComment === '' ? [] : [approveComment], usableGifs, current, random);
+  }
+
+  if (usableGifs.length === 0) {
+    return '';
+  }
+
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    const candidate = build(typed, pick(usableGifs, random), approveComment);
+    if (candidate !== current) {
+      return candidate;
+    }
+  }
+
+  return build(typed, usableGifs[0], approveComment);
 }

@@ -202,3 +202,64 @@ export function findInsertionPoint(textarea: HTMLTextAreaElement): InsertionPoin
 
   return undefined;
 }
+
+/**
+ * The review dialog a textarea belongs to, if it is in one.
+ *
+ * Both lookups below scope through this: the diff toolbar carries its own
+ * "Submit review" trigger, and clicking that posts a review nobody asked for.
+ */
+function reviewScope(textarea: HTMLTextAreaElement): HTMLElement | undefined {
+  return textarea.closest<HTMLElement>(reviewDialog.join(',')) ?? textarea.form ?? undefined;
+}
+
+function radioLabel(radio: HTMLInputElement, scope: HTMLElement): string {
+  const wrapping = radio.closest('label');
+  const associated = radio.id ? scope.querySelector(`label[for="${CSS.escape(radio.id)}"]`) : null;
+  const text = wrapping?.textContent ?? associated?.textContent ?? radio.getAttribute('aria-label') ?? '';
+
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * The "Approve" verdict radio, or `undefined` when it cannot be used.
+ *
+ * Undefined is what stops an approval going out: GitHub disables this radio on
+ * your own PR, and submitting without it posts a plain comment instead.
+ *
+ * The value is GitHub's own vocabulary on both the React and legacy markup; the
+ * caption is only a fallback, being localised where the value is not.
+ */
+export function findApproveRadio(textarea: HTMLTextAreaElement): HTMLInputElement | undefined {
+  const scope = reviewScope(textarea);
+  if (!scope) {
+    return undefined;
+  }
+
+  const radios = [...scope.querySelectorAll<HTMLInputElement>('input[type="radio"]')].filter(radio => !radio.disabled);
+
+  return (
+    radios.find(radio => radio.value.toLowerCase() === 'approve') ??
+    radios.find(radio => radioLabel(radio, scope).toLowerCase() === 'approve')
+  );
+}
+
+/**
+ * The dialog's own "Submit review" button, if it is ready to be pressed.
+ *
+ * Anchored rather than exact: the caption carries its keyboard shortcut.
+ */
+export function findSubmitReviewButton(textarea: HTMLTextAreaElement): HTMLButtonElement | undefined {
+  const scope = reviewScope(textarea);
+  if (!scope) {
+    return undefined;
+  }
+
+  for (const button of scope.querySelectorAll<HTMLButtonElement>('button')) {
+    if (!button.disabled && /^submit review/i.test(buttonLabel(button))) {
+      return button;
+    }
+  }
+
+  return undefined;
+}

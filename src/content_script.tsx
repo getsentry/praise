@@ -1,5 +1,6 @@
 import { setFieldText } from 'text-field-edit';
-import { composePraise } from './lib/compose-praise';
+import { submitApproval } from './lib/approve';
+import { composeApprove, composePraise } from './lib/compose-praise';
 import { isPullRequestUrl } from './lib/pr-url';
 import observe from './lib/selector-observer';
 import { findInsertionPoint, markdownTextarea, praiseContext } from './lib/selectors';
@@ -192,20 +193,24 @@ function addPraiseButton(textarea: HTMLTextAreaElement, attempt = 0): void {
 
   decorated.add(textarea);
 
-  // Gifs ride along with approve comments only; a diff comment stays plain text.
-  const praises =
-    context === 'reviews'
-      ? () => ({ texts: approveComment === '' ? [] : [approveComment], gifs: approveGifsEnabled ? approveGifs : [] })
-      : () => ({ texts: commentPraises, gifs: [] });
+  const button = createButton(before, context === 'reviews' ? 'Approve' : 'Praise');
 
-  const button = createButton(before);
-  button.addEventListener('click', () => {
-    const { texts, gifs } = praises();
-    setPraise(textarea, texts, gifs);
-  });
+  if (context === 'reviews') {
+    button.addEventListener('click', () => {
+      void approve(textarea);
+    });
+  } else {
+    // Gifs ride along with approve comments only; a diff comment stays plain text.
+    button.addEventListener('click', () => {
+      setPraise(textarea, commentPraises, []);
+    });
+
+    // Approve stays visible instead: typing your own text is exactly when it
+    // adds nothing but the gif.
+    toggleButton(textarea, button);
+  }
 
   before.before(button);
-  toggleButton(textarea, button);
 }
 
 /**
@@ -214,8 +219,7 @@ function addPraiseButton(textarea: HTMLTextAreaElement, attempt = 0): void {
  * Cloning a neighbouring button inherits whatever Primer classes are current
  * instead of hardcoding hashed class names, which go stale on every deploy.
  */
-function createButton(neighbour: HTMLElement): HTMLButtonElement {
-  const label = 'Praise';
+function createButton(neighbour: HTMLElement, label: string): HTMLButtonElement {
   const template =
     neighbour.tagName === 'BUTTON' ? (neighbour as HTMLButtonElement) : neighbour.querySelector('button');
 
@@ -271,7 +275,26 @@ function createButton(neighbour: HTMLElement): HTMLButtonElement {
  * @param gifs The gif urls to randomly pick. Empty means text only.
  */
 function setPraise(textarea: HTMLTextAreaElement, praises: string[], gifs: string[]): void {
-  const newText = composePraise(praises, gifs, textarea.value);
+  write(textarea, composePraise(praises, gifs, textarea.value));
+}
+
+/**
+ * Fills the review box and approves the pull request.
+ *
+ * The write stands on its own: when the verdict is out of reach -- your own PR
+ * being the everyday case -- the box is left filled rather than the click doing
+ * nothing at all.
+ */
+async function approve(textarea: HTMLTextAreaElement): Promise<void> {
+  const gifs = approveGifsEnabled ? approveGifs : [];
+
+  write(textarea, composeApprove(approveComment, gifs, textarea.value));
+
+  await submitApproval(textarea);
+}
+
+/** Treats `''` as "leave the box as it is". */
+function write(textarea: HTMLTextAreaElement, newText: string): void {
   if (newText === '') {
     return;
   }
