@@ -1,7 +1,10 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Options } from '../lib/Options';
 import { type ChromeStorageMock, installChromeMock, uninstallChromeMock } from '../test-support/chrome-mock';
+
+/** Must stay above the SAVE_DELAY_MS the component debounces writes by. */
+const PAST_SAVE_DELAY_MS = 1000;
 
 let storage: ChromeStorageMock;
 
@@ -10,12 +13,29 @@ function renderOptions(stored: Record<string, unknown> = {}) {
   return render(<Options />);
 }
 
+/** Types with fake timers running, which user-event needs told about. */
+function setupUser() {
+  return userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+}
+
 /** The two textareas, in document order: reviews first, then comments. */
 function textareas(): HTMLTextAreaElement[] {
   return screen.getAllByRole('textbox');
 }
 
+/** Waits out the save debounce, so queued writes reach storage. */
+function settle() {
+  act(() => {
+    jest.advanceTimersByTime(PAST_SAVE_DELAY_MS);
+  });
+}
+
+beforeEach(() => {
+  jest.useFakeTimers();
+});
+
 afterEach(() => {
+  jest.useRealTimers();
   uninstallChromeMock();
   jest.clearAllMocks();
 });
@@ -60,33 +80,30 @@ describe('Options', () => {
   });
 
   test('writes edited reviews back to storage, split on newlines', async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderOptions({ reviews: ['LGTM'], comments: ['Nice'] });
     await waitFor(() => {
       expect(textareas()[0]).toHaveValue('LGTM');
     });
 
     await user.type(textareas()[0], '!');
+    settle();
 
-    await waitFor(() => {
-      expect(storage.set).toHaveBeenCalled();
-    });
     expect(lastSet()).toEqual({ reviews: ['LGTM!'] });
     expect(textareas()[0]).toHaveValue('LGTM!');
   });
 
   test('editing reviews leaves the stored comments untouched', async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderOptions({ reviews: ['LGTM'], comments: ['Nice'] });
     await waitFor(() => {
       expect(textareas()[0]).toHaveValue('LGTM');
     });
 
     await user.type(textareas()[0], '!');
+    settle();
 
-    await waitFor(() => {
-      expect(storage.set).toHaveBeenCalled();
-    });
+    expect(storage.set).toHaveBeenCalled();
     for (const [written] of storage.set.mock.calls) {
       expect(Object.keys(written)).toEqual(['reviews']);
     }
@@ -94,81 +111,109 @@ describe('Options', () => {
   });
 
   test('writes edited comments back to storage without touching reviews', async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderOptions({ reviews: ['LGTM'], comments: ['Nice'] });
     await waitFor(() => {
       expect(textareas()[1]).toHaveValue('Nice');
     });
 
     await user.type(textareas()[1], '!');
+    settle();
 
-    await waitFor(() => {
-      expect(storage.set).toHaveBeenCalled();
-    });
     expect(lastSet()).toEqual({ comments: ['Nice!'] });
     expect(textareas()[0]).toHaveValue('LGTM');
   });
 
   test('splits a multi-line edit into one entry per line and renders it back unchanged', async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderOptions();
     await waitFor(() => {
       expect(storage.get).toHaveBeenCalled();
     });
 
     await user.type(textareas()[0], 'one{Enter}two');
+    settle();
 
-    await waitFor(() => {
-      expect(lastSet()).toEqual({ reviews: ['one', 'two'] });
-    });
+    expect(lastSet()).toEqual({ reviews: ['one', 'two'] });
     expect(textareas()[0]).toHaveValue('one\ntwo');
   });
 
   test('keeps a blank line as an empty entry, so the text round-trips', async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderOptions();
     await waitFor(() => {
       expect(storage.get).toHaveBeenCalled();
     });
 
     await user.type(textareas()[0], 'one{Enter}{Enter}two');
+    settle();
 
-    await waitFor(() => {
-      expect(lastSet()).toEqual({ reviews: ['one', '', 'two'] });
-    });
+    expect(lastSet()).toEqual({ reviews: ['one', '', 'two'] });
     expect(textareas()[0]).toHaveValue('one\n\ntwo');
   });
 
   test('a trailing newline stores a trailing empty entry', async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderOptions();
     await waitFor(() => {
       expect(storage.get).toHaveBeenCalled();
     });
 
     await user.type(textareas()[0], 'one{Enter}');
+    settle();
 
-    await waitFor(() => {
-      expect(lastSet()).toEqual({ reviews: ['one', ''] });
-    });
+    expect(lastSet()).toEqual({ reviews: ['one', ''] });
   });
 
   test('clearing a textarea stores no praises rather than one empty praise', async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderOptions({ reviews: ['LGTM'], comments: [] });
     await waitFor(() => {
       expect(textareas()[0]).toHaveValue('LGTM');
     });
 
     await user.clear(textareas()[0]);
+    settle();
 
+    expect(lastSet()).toEqual({ reviews: [] });
+  });
+
+  test('writes once for a burst of typing rather than once per keystroke', async () => {
+    const user = setupUser();
+    renderOptions({ reviews: [], comments: [] });
     await waitFor(() => {
-      expect(lastSet()).toEqual({ reviews: [] });
+      expect(storage.get).toHaveBeenCalled();
     });
+
+    await user.type(textareas()[0], 'LGTM');
+
+    // Sync storage rejects writes past roughly 120 a minute, so a praise
+    // must not cost one write per character.
+    expect(storage.set).not.toHaveBeenCalled();
+    settle();
+    expect(storage.set).toHaveBeenCalledTimes(1);
+    expect(lastSet()).toEqual({ reviews: ['LGTM'] });
+  });
+
+  test('saves the pending edit when the page is closed mid-debounce', async () => {
+    const user = setupUser();
+    renderOptions({ reviews: [], comments: [] });
+    await waitFor(() => {
+      expect(storage.get).toHaveBeenCalled();
+    });
+
+    await user.type(textareas()[0], 'LGTM');
+    expect(storage.set).not.toHaveBeenCalled();
+
+    act(() => {
+      window.dispatchEvent(new Event('pagehide'));
+    });
+
+    expect(lastSet()).toEqual({ reviews: ['LGTM'] });
   });
 
   test('a cleared textarea stays empty, so the empty list round-trips', async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     renderOptions({ reviews: ['LGTM'], comments: [] });
     await waitFor(() => {
       expect(textareas()[0]).toHaveValue('LGTM');
