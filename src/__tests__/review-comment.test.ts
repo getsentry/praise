@@ -3,7 +3,6 @@ import { submitReviewComment } from '../lib/review-comment';
 /** Skips the real frame wait. */
 const immediately = (): Promise<void> => Promise.resolve();
 
-/** An inline diff editor whose footer offers `buttons` beside Cancel. */
 function editor(buttons: string): HTMLTextAreaElement {
   document.body.innerHTML = `
     <div id="wrapper">
@@ -51,7 +50,6 @@ describe('submitReviewComment', () => {
     expect(clicks).toEqual(['Add review comment']);
   });
 
-  /** A standalone comment is not what the button promises, so nothing goes out. */
   it('posts nothing when only a single comment is on offer', async () => {
     const textarea = editor('<button>Add single comment</button>');
     const clicks = spyOnClicks();
@@ -60,10 +58,6 @@ describe('submitReviewComment', () => {
     expect(clicks).toEqual([]);
   });
 
-  /**
-   * The button turns active only once React has re-rendered on the praise we
-   * just wrote, so reading it in the same tick finds it still inactive.
-   */
   it('looks for the button only after the write has been rendered', async () => {
     const textarea = editor('<button data-inactive="true">Start a review</button>');
     const button = [...document.querySelectorAll('button')].find(each => each.textContent === 'Start a review')!;

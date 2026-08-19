@@ -246,13 +246,7 @@ describe('the dialog as GitHub actually serves it', () => {
   });
 });
 
-/**
- * The inline editor's footer, with whichever submit buttons GitHub offers.
- *
- * The caption on the review button is GitHub's own signal for review state --
- * "Start a review" with none pending, "Add review comment" once one is -- so the
- * fixtures vary that rather than any wrapper markup.
- */
+/** The inline editor's footer, with whichever submit buttons GitHub offers. */
 function inlineEditorFooter(buttons: string): HTMLTextAreaElement {
   document.body.innerHTML = `
     <div id="wrapper">
@@ -286,17 +280,12 @@ describe('findReviewCommentButton', () => {
     expect(findReviewCommentButton(textarea)?.textContent).toBe('Add review comment');
   });
 
-  /**
-   * The whole point of the feature: a praise goes out as part of a review or not
-   * at all, so a footer offering only a standalone comment yields nothing.
-   */
   it('finds nothing when only a single comment is on offer', () => {
     const textarea = inlineEditorFooter('<button>Add single comment</button>');
 
     expect(findReviewCommentButton(textarea)).toBeUndefined();
   });
 
-  /** A bare "Comment" posts a standalone comment too, despite the shorter caption. */
   it('does not mistake a plain Comment button for a review comment', () => {
     const textarea = inlineEditorFooter('<button>Comment</button>');
 
@@ -309,18 +298,12 @@ describe('findReviewCommentButton', () => {
     expect(findReviewCommentButton(textarea)).toBeUndefined();
   });
 
-  /**
-   * How an empty editor arrives: Primer marks the button unavailable with an
-   * attribute rather than `disabled`, so a `disabled` check alone would click a
-   * button that does nothing.
-   */
   it('ignores a review button Primer has marked inactive', () => {
     const textarea = inlineEditorFooter('<button data-inactive="true">Start a review</button>');
 
     expect(findReviewCommentButton(textarea)).toBeUndefined();
   });
 
-  /** Primer wraps each submit button in a loading div, so it is not a direct child of the row. */
   it('finds a review button nested in its loading wrapper', () => {
     const textarea = inlineEditorFooter(
       '<div data-loading-wrapper="true"><button>Comment</button></div>' +
@@ -330,7 +313,6 @@ describe('findReviewCommentButton', () => {
     expect(findReviewCommentButton(textarea)?.textContent).toBe('Start a review');
   });
 
-  /** Reviews are the Approve button's job; its dialog must not be submitted here. */
   it('finds nothing in the review dialog', () => {
     expect(findReviewCommentButton(reviewDialogWithVerdicts())).toBeUndefined();
   });
@@ -349,15 +331,7 @@ describe('findReviewCommentButton', () => {
   });
 });
 
-/**
- * The inline editor as GitHub actually serves it, captured with
- * `npm run probe -- diff-comment` and trimmed.
- *
- * Keeps the two details a hand-written fixture gets wrong: the standalone
- * comment is captioned plainly "Comment" rather than "Add single comment", and
- * an empty editor's submit buttons are marked `data-inactive` rather than
- * `disabled`.
- */
+/** Captured with `npm run probe -- diff-comment` and trimmed. */
 function capturedDiffEditor(inactive: boolean): HTMLTextAreaElement {
   const mark = inactive ? 'data-inactive="true"' : '';
 
@@ -397,17 +371,14 @@ describe('the inline editor as GitHub actually serves it', () => {
     expect(findReviewCommentButton(capturedDiffEditor(false))?.textContent?.trim()).toBe('Start a review');
   });
 
-  /** Clicking it would post a standalone comment, which is the one thing we must not do. */
   it('never returns the plain Comment button', () => {
     expect(findReviewCommentButton(capturedDiffEditor(false))?.dataset.variant).toBe('primary');
   });
 
-  /** How the empty editor arrives, before the praise is written into it. */
   it('finds nothing while both submit buttons are inactive', () => {
     expect(findReviewCommentButton(capturedDiffEditor(true))).toBeUndefined();
   });
 
-  /** Our own button sits in the same row and must never be mistaken for a submit. */
   it('does not return our own Praise button', () => {
     expect(findReviewCommentButton(capturedDiffEditor(false))?.classList.contains('sentry-pr-praise-button')).toBe(
       false,

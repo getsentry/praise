@@ -267,17 +267,7 @@ function createButton(neighbour: HTMLElement, label: string): HTMLButtonElement 
   return button;
 }
 
-/**
- * Fills a diff comment box with a random praise and files it as part of a review.
- *
- * Submitting only after a real write is what keeps an unconfigured praise list
- * from posting a blank comment: `composePraise` yields `''` when there is
- * nothing to say, and `write` reports having left the box alone.
- *
- * A failed submit is deliberately silent. The praise is still in the box, which
- * is the same bargain Approve strikes when the verdict is out of reach: better a
- * draft to finish by hand than a standalone comment nobody asked for.
- */
+/** Submits only after a real write, so an unconfigured praise list posts nothing. */
 async function praise(textarea: HTMLTextAreaElement): Promise<void> {
   // Gifs ride along with approve comments only; a diff comment stays plain text.
   if (write(textarea, composePraise(commentPraises, [], textarea.value))) {
@@ -300,11 +290,7 @@ async function approve(textarea: HTMLTextAreaElement): Promise<void> {
   await submitApproval(textarea);
 }
 
-/**
- * Treats `''` as "leave the box as it is".
- *
- * @returns Whether anything was written.
- */
+/** Treats `''` as "leave the box as it is". */
 function write(textarea: HTMLTextAreaElement, newText: string): boolean {
   if (newText === '') {
     return false;
