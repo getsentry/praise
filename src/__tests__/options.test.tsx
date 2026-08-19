@@ -153,7 +153,7 @@ describe('Options', () => {
     });
   });
 
-  test('clearing a textarea stores a single empty string, not an empty list', async () => {
+  test('clearing a textarea stores no praises rather than one empty praise', async () => {
     const user = userEvent.setup();
     renderOptions({ reviews: ['LGTM'], comments: [] });
     await waitFor(() => {
@@ -162,10 +162,22 @@ describe('Options', () => {
 
     await user.clear(textareas()[0]);
 
-    // Documents current behaviour: `''.split(/\n/)` yields `['']`, so the
-    // stored list holds one empty praise rather than no praises at all.
     await waitFor(() => {
-      expect(lastSet()).toEqual({ reviews: [''] });
+      expect(lastSet()).toEqual({ reviews: [] });
+    });
+  });
+
+  test('a cleared textarea stays empty, so the empty list round-trips', async () => {
+    const user = userEvent.setup();
+    renderOptions({ reviews: ['LGTM'], comments: [] });
+    await waitFor(() => {
+      expect(textareas()[0]).toHaveValue('LGTM');
+    });
+
+    await user.clear(textareas()[0]);
+
+    await waitFor(() => {
+      expect(textareas()[0]).toHaveValue('');
     });
   });
 });
