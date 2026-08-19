@@ -97,6 +97,10 @@ writes three files to `.probe/`:
 names carry a hash that rotates on every deploy, so a real capture is the only
 reliable record of what the page actually looked like.
 
+When a scenario stops finding what it clicks, that capture is where to look —
+both scenarios drive `/changes` (GitHub redirects `/files` there), and the
+markup they reach for has moved before.
+
 The probe is read-only — it opens editors and inspects them, and never submits
 a review or comment.
 
