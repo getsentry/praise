@@ -13,7 +13,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://github.com/*/pull/*"],
+      "matches": ["https://github.com/*"],
       "js": ["js/content_script.js"],
       "css": ["style.css"]
     }

@@ -1,7 +1,15 @@
 import { setFieldText } from 'text-field-edit';
 import { composePraise } from './lib/compose-praise';
+import { isPullRequestUrl } from './lib/pr-url';
 import observe from './lib/selector-observer';
 import { findInsertionPoint, markdownTextarea, praiseContext } from './lib/selectors';
+
+/**
+ * Not yet in TypeScript's DOM lib. Only the member we use.
+ */
+type NavigationApi = {
+  addEventListener(type: 'navigatesuccess', listener: () => void): void;
+};
 
 const buttonClass = 'sentry-pr-praise-button';
 
@@ -34,7 +42,7 @@ let observerController: AbortController | undefined;
 
 loadPraises();
 watchPraises();
-setUpObserver();
+syncObserver();
 watchNavigation();
 
 type Stored = { approveComment: string; comments: string[]; approveGifs: string[]; approveGifsEnabled: boolean };
@@ -106,17 +114,40 @@ function setUpObserver(): void {
 }
 
 /**
+ * Arms or disarms the observer to match the current URL.
+ *
+ * The manifest now injects on all of github.com, not just PR pages, so the
+ * script has to gate itself at runtime -- both on load and on every soft
+ * navigation -- instead of relying on Chrome's `matches` filtering.
+ */
+function syncObserver(): void {
+  if (isPullRequestUrl(location.href)) {
+    setUpObserver();
+  } else {
+    observerController?.abort();
+    observerController = undefined;
+  }
+}
+
+/**
  * GitHub soft-navigates between the PR tabs, which tears down the stylesheet our
- * observer relies on. Re-arm on every transition.
+ * observer relies on. Re-sync on every transition.
  *
  * `pjax:*` is gone from GitHub's current bundles; `soft-nav:*` replaced it.
+ * `navigatesuccess` is included too: it's a platform event rather than a
+ * GitHub-private one, so unlike the others it won't rot on GitHub's next
+ * deploy.
  */
 function watchNavigation(): void {
   for (const event of ['soft-nav:payload', 'soft-nav:end', 'turbo:load', 'statechange', 'popstate']) {
     window.addEventListener(event, () => {
-      setUpObserver();
+      syncObserver();
     });
   }
+
+  (window as unknown as { navigation?: NavigationApi }).navigation?.addEventListener('navigatesuccess', () => {
+    syncObserver();
+  });
 }
 
 /**

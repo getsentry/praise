@@ -19,6 +19,13 @@ test('takes a URL in either position', () => {
   expect(parseArgs([url, 'diff-comment'])).toEqual({ scenario: 'diff-comment', url });
 });
 
+test('accepts the soft-nav regression scenario', () => {
+  expect(parseArgs(['soft-nav-review'])).toEqual({
+    scenario: 'soft-nav-review',
+    url: DEFAULT_URL,
+  });
+});
+
 test('reports an unknown scenario rather than guessing', () => {
   const result = parseArgs(['reviw']);
 
