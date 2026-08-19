@@ -48,7 +48,7 @@ describe('Options', () => {
     renderOptions();
 
     expect(screen.getByRole('heading', { name: 'PR Approval', level: 2 })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Comment Praises', level: 2 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Praising PR Review Comments', level: 2 })).toBeInTheDocument();
   });
 
   test('nests GIFs under PR Approval as a subheading', () => {
@@ -59,7 +59,7 @@ describe('Options', () => {
     // Between the two top-level sections, so the gifs sit with the review they
     // attach to rather than trailing the whole page.
     const headings = screen.getAllByRole('heading').map(heading => heading.textContent);
-    expect(headings).toEqual(['PR Approval', 'GIFs', 'Comment Praises']);
+    expect(headings).toEqual(['PR Approval', 'GIFs', 'Praising PR Review Comments']);
   });
 
   test('reads every key from sync storage on mount, defaulting gifs to on', async () => {
@@ -92,7 +92,7 @@ describe('Options', () => {
       expect(storage.get).toHaveBeenCalled();
     });
 
-    await user.type(addInput('Comment Praises'), 'Nice{Enter}');
+    await user.type(addInput('Praising PR Review Comments'), 'Nice{Enter}');
 
     expect(storage.set).toHaveBeenCalledWith({ comments: ['Nice'] });
   });

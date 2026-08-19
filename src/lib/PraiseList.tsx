@@ -79,7 +79,7 @@ export const PraiseList = ({ label, items, onChange, hideHeading = false }: Prop
       </ul>
       <input
         className="praise-add"
-        placeholder="Add a praise…"
+        placeholder="Add a comment…"
         aria-label={`Add to ${label}`}
         ref={addInputRef}
         value={addValue}
