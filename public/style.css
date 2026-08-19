@@ -6,13 +6,18 @@
  * Only colour is overridden -- padding, font and height are inherited from the
  * cloned Primer button so the row stays aligned. Kept compact because Primer's
  * dialog switches its footer to a wrapped layout past 48px tall.
+ *
+ * The colours are Sentry's own, copied from the design tokens in
+ * getsentry/sentry (static/app/utils/theme/scraps): #7553ff is `blurple`, aka
+ * `background.accent.vibrant`, which fills Sentry's primary buttons, and
+ * #653de9 is `link.accent.rest`, its darker sibling, used here for hover.
  */
 .sentry-pr-praise-button {
   flex: 0 0 auto;
   align-self: center;
   width: auto;
-  background-color: #e1567c;
-  border-color: #e1567c;
+  background-color: #7553ff;
+  border-color: #7553ff;
   color: white;
 
   user-select: none;
@@ -20,8 +25,8 @@
 }
 
 .sentry-pr-praise-button:hover {
-  background-color: #c73852;
-  border-color: #c73852;
+  background-color: #653de9;
+  border-color: #653de9;
   color: white;
 }
 
