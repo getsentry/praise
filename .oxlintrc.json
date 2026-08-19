@@ -115,6 +115,13 @@
         "no-console": "off",
         "max-lines": "off"
       }
+    },
+    {
+      // The probe is a CLI: its stdout *is* its output, so console is the API.
+      "files": ["scripts/**"],
+      "rules": {
+        "no-console": "off"
+      }
     }
   ],
   "env": {
