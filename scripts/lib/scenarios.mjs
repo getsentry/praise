@@ -10,7 +10,12 @@
  * step that failed. When GitHub moves its markup, that name is the diagnostic.
  */
 
-/** Clicks the first button whose visible caption matches, in the page. */
+/**
+ * Clicks the first button whose visible caption matches.
+ *
+ * Matched loosely, not anchored: Primer nests captions, so `textContent`
+ * concatenates them -- the review trigger reads "Submit reviewReview".
+ */
 const clickByCaption = pattern => `(() => {
   const caption = element => (element.textContent ?? '').replace(/\\s+/g, ' ').trim();
   for (const button of document.querySelectorAll('button, summary, a[role="button"]')) {
@@ -34,19 +39,21 @@ const openDiffComment = `(() => {
   return true;
 })()`;
 
+/** GitHub redirects `/files` here, and the review trigger exists only on it. */
+const changesTab = '/changes';
+
 export const scenarios = {
   review: {
     description: 'the "Finish your review" dialog',
+    navigateSuffix: changesTab,
     steps: [
-      { name: 'open-review-menu', expression: clickByCaption('/^(Review changes|Add your review)$/i') },
+      { name: 'open-review-menu', expression: clickByCaption('/Submit review|Review changes|Add your review/i') },
       { name: 'await-textarea', awaitSelector: 'textarea' },
     ],
   },
   'diff-comment': {
     description: 'an inline diff comment editor',
-    // The files tab is a separate URL rather than a click, so the CLI navigates
-    // there first; soft navigation would race the observer re-arming.
-    navigateSuffix: '/files',
+    navigateSuffix: changesTab,
     steps: [
       { name: 'open-diff-comment', expression: openDiffComment },
       { name: 'await-textarea', awaitSelector: 'textarea' },
