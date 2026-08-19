@@ -24,6 +24,23 @@ npm run build     # typecheck + production bundle
 
 Run `npm test`, `npm run typecheck`, and `npm run verify` before proposing changes.
 
+## Checking the button on a real PR
+
+None of the commands above load the extension, so none of them can tell you the
+button actually appears — two bugs that broke it everywhere passed all of them.
+Verify placement changes against a live page:
+
+```sh
+npm run dev                    # leave running; opens Chrome with the extension
+npm run probe                  # review dialog
+npm run probe -- diff-comment  # inline diff editor
+```
+
+`npm run probe` exits 0 only when the button sits immediately before Cancel, and
+writes `.probe/verdict.json` plus a sanitized `editor.html` — read that capture
+when a step stops finding what it clicks, rather than guessing at selectors. It
+needs a one-time GitHub login; see `CONTRIBUTING.md`.
+
 ## Code style
 
 - Formatting and linting come from the oxc toolchain (`oxfmt`, `oxlint`); do not hand-format.
