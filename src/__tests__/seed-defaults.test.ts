@@ -21,8 +21,8 @@ describe('DEFAULT_APPROVE_COMMENT / DEFAULT_COMMENTS / DEFAULT_APPROVE_GIFS', ()
     expect(DEFAULT_APPROVE_COMMENT).toBe('LGTM 🚀');
   });
 
-  test('DEFAULT_COMMENTS holds ten non-empty strings', () => {
-    expect(DEFAULT_COMMENTS).toHaveLength(10);
+  test('DEFAULT_COMMENTS holds three non-empty strings', () => {
+    expect(DEFAULT_COMMENTS).toHaveLength(3);
     for (const comment of DEFAULT_COMMENTS) {
       expect(typeof comment).toBe('string');
       expect(comment.length).toBeGreaterThan(0);

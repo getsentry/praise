@@ -4,18 +4,7 @@
 /** An approval posts one comment, so this is a single string rather than a list. */
 export const DEFAULT_APPROVE_COMMENT = 'LGTM 🚀';
 
-export const DEFAULT_COMMENTS = [
-  'This is awesome 👏 ',
-  'Thanks for improving this 🚢:',
-  'I like this a lot 🚀',
-  'You deserve a 🥇',
-  'Best change ever 💯',
-  '🏆 Developer of the year 🏆',
-  'This code makes my day ☀️',
-  'You rock 🎸. Thanks.',
-  '🌮  to you!',
-  'Oh yeah 💪',
-];
+export const DEFAULT_COMMENTS = ['Thanks 🥔', 'Thanks a lot 🚀', 'Thank you 🙏'];
 
 /**
  * Direct media urls rather than giphy page links: only the former render as an
