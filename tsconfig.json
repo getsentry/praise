@@ -10,6 +10,6 @@
     "outDir": "dist/js",
     "noEmitOnError": true,
     "jsx": "react-jsx",
-    "types": ["chrome", "jest", "react", "react-dom"]
+    "types": ["chrome", "jest", "react", "react-dom", "@testing-library/jest-dom"]
   }
 }
