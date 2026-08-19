@@ -155,10 +155,17 @@ async function main() {
   }
 
   const target = plan.navigateSuffix ? url.replace(/\/*$/, '') + plan.navigateSuffix : url;
-  const { targetId, sessionId } = await openTab(connection, target);
   const verdict = { scenario, url: target, buttonFound: false, beforeCancel: false };
 
+  // Opened inside the `try`: an open socket keeps the event loop alive, so a
+  // throw from here with the connection still open hangs the process rather than
+  // failing it.
+  let targetId;
+  let sessionId;
+
   try {
+    ({ targetId, sessionId } = await openTab(connection, target));
+
     // GitHub renders progressively and our content script retries for two
     // seconds; give both room before touching anything.
     const loaded = await waitForPage(connection, sessionId, 'main');
@@ -243,15 +250,21 @@ async function main() {
     // the `finally` below, which would leak the tab on every run.
     process.exitCode = verdict.beforeCancel ? 0 : 1;
   } finally {
-    // Escape closes the editor we opened, so the browser is left as we found it.
-    await bestEffort(() =>
-      evaluate(
-        connection,
-        sessionId,
-        `document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })), true`,
-      ),
-    );
-    await bestEffort(() => closeTab(connection, targetId));
+    // The tab may not exist: `openTab` itself can throw, and then there is
+    // nothing to tidy but the socket.
+    if (sessionId) {
+      // Escape closes the editor we opened, so the browser is left as we found it.
+      await bestEffort(() =>
+        evaluate(
+          connection,
+          sessionId,
+          `document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })), true`,
+        ),
+      );
+    }
+    if (targetId) {
+      await bestEffort(() => closeTab(connection, targetId));
+    }
     connection.close();
   }
 }
