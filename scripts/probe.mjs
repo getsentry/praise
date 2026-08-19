@@ -102,6 +102,36 @@ async function waitForPage(connection, sessionId, selector, timeoutMs = 15_000) 
   return last;
 }
 
+/**
+ * Moves the real pointer over an element.
+ *
+ * Dispatching MouseEvents from a script does not set hover state, so controls
+ * that only render on hover -- the diff's own "Add comment" button -- never
+ * appear. `Input.dispatchMouseEvent` goes through the browser's input pipeline,
+ * which does.
+ */
+async function hover(connection, sessionId, selector) {
+  const box = await evaluate(
+    connection,
+    sessionId,
+    `(() => {
+      const element = document.querySelector(${JSON.stringify(selector)});
+      const rect = element?.getBoundingClientRect();
+      return rect && rect.width > 0 && rect.height > 0
+        ? JSON.stringify({ x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 })
+        : null;
+    })()`,
+  );
+
+  if (!box) {
+    return false;
+  }
+
+  const { x, y } = JSON.parse(box);
+  await connection.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y, button: 'none' }, sessionId);
+  return true;
+}
+
 async function main() {
   const { scenario, url, error } = parseArgs(process.argv.slice(2));
   if (error) {
@@ -157,6 +187,15 @@ async function main() {
           verdict.error = `step "${step.name}" timed out waiting for ${step.awaitSelector}`;
           break;
         }
+        continue;
+      }
+
+      if (step.hoverSelector) {
+        if (!(await hover(connection, sessionId, step.hoverSelector))) {
+          verdict.error = `step "${step.name}" found nothing matching ${step.hoverSelector} to hover`;
+          break;
+        }
+        await delay(1000);
         continue;
       }
 

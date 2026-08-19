@@ -27,31 +27,16 @@ const clickByCaption = pattern => `(() => {
   return false;
 })()`;
 
-/**
- * Opens the inline editor on the first diff line that offers one.
- *
- * The trigger is only rendered while the row is hovered, so the hover has to be
- * simulated before it exists to click.
- */
+/** Opens the inline editor on the diff line the pointer is over. */
 const openDiffComment = `(() => {
-  const rows = document.querySelectorAll('tr.diff-line-row, .diff-table tr');
-  for (const row of rows) {
-    for (const type of ['pointerover', 'mouseover', 'mouseenter', 'mousemove']) {
-      row.dispatchEvent(new MouseEvent(type, { bubbles: true }));
-      for (const cell of row.children) {
-        cell.dispatchEvent(new MouseEvent(type, { bubbles: true }));
-      }
-    }
-
-    const trigger = row.querySelector(
-      'button[aria-label="Add comment" i], button[aria-label*="Add a comment" i], button.add-line-comment',
-    );
-    if (trigger) {
-      trigger.click();
-      return true;
-    }
+  const trigger = document.querySelector(
+    'button[aria-label="Add comment" i], button[aria-label*="Add a comment" i], button.add-line-comment',
+  );
+  if (!trigger) {
+    return false;
   }
-  return false;
+  trigger.click();
+  return true;
 })()`;
 
 /** GitHub redirects `/files` here, and the review trigger exists only on it. */
@@ -70,6 +55,8 @@ export const scenarios = {
     description: 'an inline diff comment editor',
     navigateSuffix: changesTab,
     steps: [
+      { name: 'await-diff', awaitSelector: 'tr.diff-line-row' },
+      { name: 'hover-diff-line', hoverSelector: 'tr.diff-line-row td.diff-text-cell' },
       { name: 'open-diff-comment', expression: openDiffComment },
       { name: 'await-textarea', awaitSelector: 'textarea' },
     ],
