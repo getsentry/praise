@@ -137,7 +137,7 @@ export const PraiseList = ({ label, items, onChange, hideHeading = false, showPr
       </ul>
       <input
         className="praise-add"
-        placeholder="Add a praise…"
+        placeholder={showPreview ? 'Add gif…' : 'Add a praise…'}
         aria-label={`Add to ${label}`}
         ref={addInputRef}
         value={addValue}
