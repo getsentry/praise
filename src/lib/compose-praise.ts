@@ -70,15 +70,21 @@ export function composePraise(
  * neither test and survives.
  */
 function stripOurGif(current: string, gifs: string[], approveComment: string): string {
-  // Only an image the body ends on. One with your text below it is yours to
-  // keep, and slicing from its start would delete what you wrote.
+  // The last image only, and only if the body ends on it. Scanning for the
+  // first would span an image of yours above ours; an image with your text
+  // below it is yours to keep.
   const body = current.trimEnd();
-  const match = /(^|\n\n)!\[([\s\S]*)\]\(([^)]*)\)$/.exec(body);
+  const at = body.lastIndexOf('\n\n![');
+  const image = at === -1 ? (body.startsWith('![') ? body : undefined) : body.slice(at + 2);
+
+  // Alt text arrives escaped, so `\\.` is what lets a bracket in the praise
+  // through without ending the alt early.
+  const match = image === undefined ? null : /^!\[((?:\\.|[^\\\]])*)\]\(([^)]*)\)$/.exec(image);
   if (!match) {
     return current;
   }
 
-  const [, , alt, url] = match;
+  const [, alt, url] = match;
 
   // Either half suffices: the url survives rewording the praise, the alt
   // survives dropping the gif from the list.
@@ -86,7 +92,7 @@ function stripOurGif(current: string, gifs: string[], approveComment: string): s
     return current;
   }
 
-  return body.slice(0, match.index);
+  return at === -1 ? '' : body.slice(0, at);
 }
 
 /**

@@ -135,6 +135,25 @@ describe('composeApprove', () => {
     expect(composeApprove('LGTM', [GIF], `![LGTM](${GIF})`, pickSequence(0))).toBe(`LGTM\n\n![LGTM](${GIF})`);
   });
 
+  /** The strip must take the last image, not span from an earlier one of yours. */
+  test('keeps an image of yours sitting above our gif', () => {
+    const mine = '![mine](https://example.com/mine.gif)';
+    const current = `look\n\n${mine}\n\n![LGTM](${GIF})`;
+
+    expect(composeApprove('LGTM', [GIF, OTHER_GIF], current, pickSequence(0.9))).toBe(
+      `look\n\n${mine}\n\n![LGTM](${OTHER_GIF})`,
+    );
+  });
+
+  /** The alt is escaped, so a bracketed praise must still be recognised as ours. */
+  test('recognises our own gif when the praise contains brackets', () => {
+    const current = `Nice [work]\n\n![Nice \\[work\\]](${GIF})`;
+
+    expect(composeApprove('Nice [work]', [OTHER_GIF], current, pickSequence(0))).toBe(
+      `Nice [work]\n\n![Nice \\[work\\]](${OTHER_GIF})`,
+    );
+  });
+
   /** Anything below our gif is yours, and deleting it would be silent data loss. */
   test('keeps text written below our gif', () => {
     const current = `LGTM\n\n![LGTM](${GIF})\n\nalso nice tests`;
