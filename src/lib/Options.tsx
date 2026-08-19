@@ -52,10 +52,15 @@ export const Options = () => {
 
   return (
     <>
-      <PraiseText label="Approve Comment" value={approveComment} onChange={approveCommentChanged} />
-      {/* Nested under Approve Comment: gifs only ever accompany a review. */}
+      <PraiseText
+        heading="PR Approval"
+        label="PR Approval Comment"
+        value={approveComment}
+        onChange={approveCommentChanged}
+      />
+      {/* Nested under PR Approval: gifs only ever accompany a review. */}
       <section className="praise-list gif-section">
-        <h3>Approve GIFs</h3>
+        <h3>GIFs</h3>
         <label className="gif-toggle">
           <input
             type="checkbox"
@@ -65,14 +70,14 @@ export const Options = () => {
               gifsEnabledChanged(event.target.checked);
             }}
           />
-          Add a GIF to approve comments
+          Add a GIF to your PR Approval Comment
         </label>
         {/*
          * The list stays editable with the toggle off. Hiding or disabling it
          * would read as "your GIFs are gone" rather than "paused", and the
          * content script already treats off the same as an empty list.
          */}
-        <GifList label="Approve GIFs" items={approveGifs} onChange={approveGifsChanged} hideHeading />
+        <GifList label="GIFs" items={approveGifs} onChange={approveGifsChanged} hideHeading />
       </section>
       <PraiseList label="Comment Praises" items={comments} onChange={commentsChanged} />
     </>

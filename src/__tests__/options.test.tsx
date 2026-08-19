@@ -47,19 +47,19 @@ describe('Options', () => {
   test('renders a heading for each section', () => {
     renderOptions();
 
-    expect(screen.getByRole('heading', { name: 'Approve Comment', level: 2 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'PR Approval', level: 2 })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Comment Praises', level: 2 })).toBeInTheDocument();
   });
 
-  test('nests Approve GIFs under Approve Comment as a subheading', () => {
+  test('nests GIFs under PR Approval as a subheading', () => {
     renderOptions();
 
-    expect(screen.getByRole('heading', { name: 'Approve GIFs', level: 3 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'GIFs', level: 3 })).toBeInTheDocument();
 
     // Between the two top-level sections, so the gifs sit with the review they
     // attach to rather than trailing the whole page.
     const headings = screen.getAllByRole('heading').map(heading => heading.textContent);
-    expect(headings).toEqual(['Approve Comment', 'Approve GIFs', 'Comment Praises']);
+    expect(headings).toEqual(['PR Approval', 'GIFs', 'Comment Praises']);
   });
 
   test('reads every key from sync storage on mount, defaulting gifs to on', async () => {
@@ -118,7 +118,7 @@ describe('Options', () => {
 
 describe('Options / approve comment', () => {
   function field(): HTMLInputElement {
-    return screen.getByRole('textbox', { name: 'Approve Comment' });
+    return screen.getByRole('textbox', { name: 'PR Approval Comment' });
   }
 
   test('is a single textbox, not a list', async () => {
@@ -128,7 +128,7 @@ describe('Options / approve comment', () => {
       expect(field()).toHaveValue('LGTM 🚀');
     });
     // A list would offer these; a single text must not.
-    expect(screen.queryByRole('textbox', { name: 'Add to Approve Comment' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Add to PR Approval Comment' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Delete "LGTM 🚀"' })).not.toBeInTheDocument();
   });
 
@@ -204,7 +204,7 @@ describe('Options / approve comment', () => {
 describe('Options / approve gifs', () => {
   /** Pico renders the toggle as `role="switch"`, so it is not a `checkbox` to the a11y tree. */
   function toggle(): HTMLInputElement {
-    return screen.getByRole('switch', { name: 'Add a GIF to approve comments' });
+    return screen.getByRole('switch', { name: 'Add a GIF to your PR Approval Comment' });
   }
 
   test('shows the stored gifs as rows', async () => {
@@ -274,7 +274,7 @@ describe('Options / approve gifs', () => {
       expect(storage.get).toHaveBeenCalled();
     });
 
-    await user.type(addInput('Approve GIFs'), `${gif}{Enter}`);
+    await user.type(addInput('GIFs'), `${gif}{Enter}`);
 
     await waitFor(() => {
       expect(storage.set).toHaveBeenCalledWith({ approveGifs: [gif] });
@@ -290,7 +290,7 @@ describe('Options / approve gifs', () => {
       expect(toggle()).not.toBeChecked();
     });
 
-    await user.type(addInput('Approve GIFs'), `${gif}{Enter}`);
+    await user.type(addInput('GIFs'), `${gif}{Enter}`);
 
     await waitFor(() => {
       expect(storage.set).toHaveBeenCalledWith({ approveGifs: [gif] });
