@@ -1,6 +1,6 @@
 import { submitApproval } from '../lib/approve';
 
-/** Runs the awaited gap immediately, so the tests do not wait on real frames. */
+/** Skips the real frame wait. */
 const immediately = (): Promise<void> => Promise.resolve();
 
 function dialog(options: { approvable?: boolean; submittable?: boolean } = {}): HTMLTextAreaElement {
@@ -42,7 +42,7 @@ describe('submitApproval', () => {
     expect(clicks).toEqual(['radio:approve', 'Submit review']);
   });
 
-  /** Approving your own PR. Submitting anyway would post a comment, not an approval. */
+  /** Approving your own PR. Submitting anyway would post a comment. */
   it('submits nothing when the approve radio is disabled', async () => {
     const textarea = dialog({ approvable: false });
     const clicks = spyOnClicks();
@@ -76,7 +76,7 @@ describe('submitApproval', () => {
     expect(clicks).toEqual(['radio:approve']);
   });
 
-  /** The footer is re-rendered by the verdict change, so it can only be read after it. */
+  /** The verdict change re-renders the footer. */
   it('looks for Submit review only after the verdict is chosen', async () => {
     const textarea = dialog({ submittable: false });
     const submit = [...document.querySelectorAll('button')].find(button => button.textContent === 'Submit review')!;

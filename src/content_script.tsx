@@ -205,9 +205,8 @@ function addPraiseButton(textarea: HTMLTextAreaElement, attempt = 0): void {
       setPraise(textarea, commentPraises, []);
     });
 
-    // Only diff comments hide the button once you type. Approve has to stay
-    // reachable, because typing your own text is exactly the case where it adds
-    // nothing but the gif.
+    // Approve stays visible instead: typing your own text is exactly when it
+    // adds nothing but the gif.
     toggleButton(textarea, button);
   }
 
@@ -282,10 +281,9 @@ function setPraise(textarea: HTMLTextAreaElement, praises: string[], gifs: strin
 /**
  * Fills the review box and approves the pull request.
  *
- * The write comes first and stands on its own: when the verdict or the submit
- * button turns out to be out of reach -- your own PR being the everyday case --
- * the dialog is left open with the praise already in it, so the click still did
- * something useful instead of nothing.
+ * The write stands on its own: when the verdict is out of reach -- your own PR
+ * being the everyday case -- the box is left filled rather than the click doing
+ * nothing at all.
  */
 async function approve(textarea: HTMLTextAreaElement): Promise<void> {
   const gifs = approveGifsEnabled ? approveGifs : [];
@@ -295,7 +293,7 @@ async function approve(textarea: HTMLTextAreaElement): Promise<void> {
   await submitApproval(textarea);
 }
 
-/** Writes a composed body, treating `''` as "leave the box as it is". */
+/** Treats `''` as "leave the box as it is". */
 function write(textarea: HTMLTextAreaElement, newText: string): void {
   if (newText === '') {
     return;

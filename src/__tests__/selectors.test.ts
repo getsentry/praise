@@ -106,10 +106,7 @@ describe('findInsertionPoint', () => {
   });
 });
 
-/**
- * The dialog as it looks with the verdict radios, which only render for a
- * reviewer who is allowed to approve.
- */
+/** The dialog with its verdict radios. */
 function reviewDialogWithVerdicts(options: { approvable?: boolean } = {}): HTMLTextAreaElement {
   const approve = options.approvable ?? true;
 
@@ -194,10 +191,9 @@ describe('findSubmitReviewButton', () => {
 });
 
 /**
- * Attribute-for-attribute what a live dialog served, trimmed to the parts these
- * two functions read. Captured with `npm run probe`; the details that matter are
- * details a hand-written fixture gets wrong -- `value="approve"` rather than a
- * caption, and a Submit button whose caption carries its keyboard shortcut.
+ * What a live dialog served, captured with `npm run probe` and trimmed. Keeps
+ * the details a hand-written fixture gets wrong: `value="approve"`, and a
+ * Submit caption carrying its keyboard shortcut.
  */
 function capturedReviewDialog(): HTMLTextAreaElement {
   document.body.innerHTML = `
@@ -222,17 +218,17 @@ describe('the dialog as GitHub actually serves it', () => {
     expect(findApproveRadio(capturedReviewDialog())?.value).toBe('approve');
   });
 
-  /** The caption ends in its keyboard shortcut, so an equality match would miss it. */
+  /** An equality match would miss it. */
   it('finds Submit review despite the shortcut trailing its caption', () => {
     expect(findSubmitReviewButton(capturedReviewDialog())).toBeDefined();
   });
 
-  /** Our own button is captioned "Approve" too, and is not a verdict control. */
+  /** Our own button is captioned "Approve" too. */
   it('does not mistake our own button for the verdict', () => {
     expect(findApproveRadio(capturedReviewDialog())?.tagName).toBe('INPUT');
   });
 
-  /** How the same dialog arrives on your own PR: rendered, but not usable. */
+  /** How it arrives on your own PR: rendered, but not usable. */
   it('finds nothing when GitHub has disabled approving', () => {
     const textarea = capturedReviewDialog();
     document.querySelectorAll('input, button').forEach(element => {

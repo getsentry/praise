@@ -206,16 +206,13 @@ export function findInsertionPoint(textarea: HTMLTextAreaElement): InsertionPoin
 /**
  * The review dialog a textarea belongs to, if it is in one.
  *
- * Everything below is scoped through here rather than searched for on the page:
- * the verdict radios and "Submit review" both have look-alikes elsewhere -- the
- * diff toolbar carries its own "Submit review" trigger -- and clicking the wrong
- * one would post a review nobody asked for.
+ * Both lookups below scope through this: the diff toolbar carries its own
+ * "Submit review" trigger, and clicking that posts a review nobody asked for.
  */
 function reviewScope(textarea: HTMLTextAreaElement): HTMLElement | undefined {
   return textarea.closest<HTMLElement>(reviewDialog.join(',')) ?? textarea.form ?? undefined;
 }
 
-/** The visible caption of a radio, taken from its wrapping or associated label. */
 function radioLabel(radio: HTMLInputElement, scope: HTMLElement): string {
   const wrapping = radio.closest('label');
   const associated = radio.id ? scope.querySelector(`label[for="${CSS.escape(radio.id)}"]`) : null;
@@ -227,15 +224,11 @@ function radioLabel(radio: HTMLInputElement, scope: HTMLElement): string {
 /**
  * The "Approve" verdict radio, or `undefined` when it cannot be used.
  *
- * Undefined is the signal that stops an approval going out: GitHub disables this
- * radio on your own PR, and submitting the dialog without it posts a plain
- * comment -- which would look like an approval to whoever pressed the button and
- * be nothing of the sort on the PR.
+ * Undefined is what stops an approval going out: GitHub disables this radio on
+ * your own PR, and submitting without it posts a plain comment instead.
  *
- * The value is the primary match because it is GitHub's own vocabulary, on both
- * the React and the legacy `pull_request_review[event]` markup. The caption is
- * the fallback for a rename of the value; it is checked second because it is
- * localised and the value is not.
+ * The value is GitHub's own vocabulary on both the React and legacy markup; the
+ * caption is only a fallback, being localised where the value is not.
  */
 export function findApproveRadio(textarea: HTMLTextAreaElement): HTMLInputElement | undefined {
   const scope = reviewScope(textarea);
@@ -254,9 +247,7 @@ export function findApproveRadio(textarea: HTMLTextAreaElement): HTMLInputElemen
 /**
  * The dialog's own "Submit review" button, if it is ready to be pressed.
  *
- * Matched by caption anchored at the start: the page-level trigger that opens
- * the dialog reads "Submit reviewReview" once Primer's nested captions are
- * concatenated, but that one lives outside the scope anyway.
+ * Anchored rather than exact: the caption carries its keyboard shortcut.
  */
 export function findSubmitReviewButton(textarea: HTMLTextAreaElement): HTMLButtonElement | undefined {
   const scope = reviewScope(textarea);

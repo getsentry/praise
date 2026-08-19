@@ -84,7 +84,7 @@ describe('composeApprove', () => {
     );
   });
 
-  /** The point of the whole function: your words survive, the praise stays out. */
+  /** The point of the function: your words survive, the praise stays out. */
   test('keeps the typed text and adds only a gif below it', () => {
     expect(composeApprove('LGTM 🚀', [GIF], 'nice refactor', pickSequence(0))).toBe(
       `nice refactor\n\n![LGTM 🚀](${GIF})`,
@@ -103,10 +103,7 @@ describe('composeApprove', () => {
     expect(composeApprove('', [GIF], 'nice', pickSequence(0))).toBe(`nice\n\n![](${GIF})`);
   });
 
-  /**
-   * The alt text lives inside `![...]`, so a newline in it closes the image
-   * early and spills the rest of the comment out as literal markdown.
-   */
+  /** A newline in the alt closes the image early. */
   test('never uses multi-line typed text as the alt text', () => {
     const typed = 'first line\n\nsecond line';
 
@@ -119,10 +116,7 @@ describe('composeApprove', () => {
     );
   });
 
-  /**
-   * GitHub restores an unsubmitted body as a draft, so the box routinely arrives
-   * already holding our own last write. Appending to that stacks gifs forever.
-   */
+  /** GitHub restores an unsubmitted body as a draft, so this is the common case. */
   test('replaces our own gif rather than stacking a second one under it', () => {
     const current = `nice refactor\n\n![LGTM](${GIF})`;
 

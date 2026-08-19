@@ -20,11 +20,7 @@ function pick<T>(items: T[], random: () => number): T {
   return items[Math.floor(random() * items.length)];
 }
 
-/**
- * @param alt What to describe the gif as. Defaults to the text, which only
- *   suits a short praise -- see `composeApprove` for why typed text cannot be
- *   its own alt.
- */
+/** @param alt Defaults to the text, which only suits a short praise. */
 function build(text: string, gif: string | undefined, alt: string = text): string {
   return gif ? `${text}\n\n![${escapeAlt(alt)}](${gif})` : text;
 }
@@ -68,13 +64,10 @@ export function composePraise(
 /**
  * Removes a trailing gif of ours, leaving whatever it was sitting under.
  *
- * Recognising our own writing by its shape rather than by remembering the last
- * write is what keeps a second click from stacking gifs: GitHub restores an
- * unsubmitted review body as a draft, so on the next page load the box arrives
- * already holding what we wrote, with no memory of having written it.
- *
- * A gif you pasted yourself matches neither test, so it is text like any other
- * and survives untouched.
+ * Matching on shape rather than remembering the last write is what stops gifs
+ * stacking: GitHub restores an unsubmitted body as a draft, so after a reload
+ * the box already holds what we wrote. A gif you pasted yourself matches
+ * neither test and survives.
  */
 function stripOurGif(current: string, gifs: string[], approveComment: string): string {
   const start = current.lastIndexOf('\n\n![');
@@ -83,9 +76,8 @@ function stripOurGif(current: string, gifs: string[], approveComment: string): s
     return current;
   }
 
-  // Either half is enough on its own. The url catches a gif written before the
-  // praise was reworded; the alt catches one written before the gif was dropped
-  // from the list, since every gif we write is captioned with the praise.
+  // Either half suffices: the url survives rewording the praise, the alt
+  // survives dropping the gif from the list.
   const byUrl = gifs.some(gif => image.endsWith(`](${gif})`));
   const byAlt = approveComment !== '' && image.startsWith(`![${escapeAlt(approveComment)}](`);
   if (!byUrl && !byAlt) {
@@ -98,18 +90,14 @@ function stripOurGif(current: string, gifs: string[], approveComment: string): s
 /**
  * Picks the body an Approve click should write, or `''` to leave the box alone.
  *
- * Two different jobs, split on whether you have written anything of your own.
- * With an empty box this is an ordinary praise. With your own words in it, the
- * praise would be putting words in your mouth, so only the gif goes underneath
- * -- and when there is no gif to add there is nothing to write at all.
+ * An empty box gets an ordinary praise. With your own words in it the praise
+ * would be putting words in your mouth, so only the gif goes underneath.
  *
- * Your words cannot be the gif's alt text, tempting as it looks: alt text lives
- * inside `![...]`, which a newline in a multi-line comment closes early, leaving
- * the rest of what you wrote as literal markdown. The praise stands in instead
- * -- short, single-line, and the one thing here that actually describes the gif.
+ * Your words cannot be the alt text: a newline closes `![...]` early and spills
+ * the rest out as literal markdown. The praise stands in, being single-line.
  *
- * @param approveComment The configured praise. Empty disables it, which still
- *   leaves a gif to append under typed text.
+ * @param approveComment The configured praise. Empty still leaves a gif to
+ *   append under typed text.
  * @param gifs Gif urls to choose from. Empty yields text on its own.
  * @param current What the textarea holds now, so a second click rerolls.
  * @param random Injected for tests; production passes nothing.
