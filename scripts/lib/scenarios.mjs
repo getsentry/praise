@@ -55,8 +55,11 @@ export const scenarios = {
     description: 'an inline diff comment editor',
     navigateSuffix: changesTab,
     steps: [
-      { name: 'await-diff', awaitSelector: 'tr.diff-line-row' },
+      { name: 'await-diff', awaitSelector: 'tr.diff-line-row td.diff-text-cell' },
       { name: 'hover-diff-line', hoverSelector: 'tr.diff-line-row td.diff-text-cell' },
+      // React renders the trigger after the hover lands, so wait for it rather
+      // than clicking into the gap.
+      { name: 'await-comment-trigger', awaitSelector: 'button[aria-label="Add comment" i]' },
       { name: 'open-diff-comment', expression: openDiffComment },
       { name: 'await-textarea', awaitSelector: 'textarea' },
     ],
