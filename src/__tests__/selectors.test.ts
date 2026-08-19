@@ -75,6 +75,23 @@ describe('findInsertionPoint', () => {
     expect(findInsertionPoint(document.querySelector('textarea')!)).toBeUndefined();
   });
 
+  it('does not climb out to an unrelated Cancel on the page', () => {
+    document.body.innerHTML = `
+      <div id="page">
+        <div class="Toolbar"><button>Cancel</button></div>
+        <div id="files">
+          <div>
+            <div class="AddCommentEditor-module__Box">
+              <textarea data-component="Textarea"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    expect(findInsertionPoint(document.querySelector('textarea')!)).toBeUndefined();
+  });
+
   it('does not take a neighbouring editor’s Cancel', () => {
     document.body.innerHTML = `
       <div id="files">
