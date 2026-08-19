@@ -1,7 +1,7 @@
 // Kept out of background.ts, away from chrome.storage, so the seeding rule is
 // unit-testable.
 
-export const DEFAULT_REVIEWS = ['LGTM 🚀', 'Ship it 🚢', 'RSLGTM 🏆', 'Good job 👏'];
+export const DEFAULT_REVIEWS = ['LGTM 🚀'];
 
 export const DEFAULT_COMMENTS = [
   'This is awesome 👏 ',
