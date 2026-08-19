@@ -10,7 +10,7 @@
  * a review or a comment.
  */
 
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { parseArgs } from './lib/args.mjs';
 import { CDP_PORT, closeTab, connect, openTab, ProbeConnectionError } from './lib/cdp.mjs';
 import { BUTTON_CLASS, inspectExpression, pageStateExpression } from './lib/page-probe.mjs';
@@ -163,6 +163,11 @@ async function main() {
   let targetId;
   let sessionId;
 
+  // A stale verdict from an earlier run is worse than none: a reader cannot tell
+  // it apart from this run's result. Clear it before the first thing that can
+  // throw, and write the real one in the `finally`.
+  await rm(`${OUTPUT_DIR}/verdict.json`, { force: true });
+
   try {
     ({ targetId, sessionId } = await openTab(connection, target));
 
@@ -181,7 +186,6 @@ async function main() {
       verdict.error = 'notLoggedIn';
       // The landing URL is the tell when the login page is what answered.
       verdict.landedOn = loaded?.url ?? state.url;
-      await writeVerdict(verdict);
       process.exitCode = 1;
       return;
     }
@@ -244,11 +248,16 @@ async function main() {
     );
     await writeFile(`${OUTPUT_DIR}/editor.png`, Buffer.from(screenshot.data, 'base64'));
 
-    await writeVerdict(verdict);
     report(verdict, plan);
     // Set the code rather than exiting here: `process.exit` inside `try` skips
     // the `finally` below, which would leak the tab on every run.
     process.exitCode = verdict.beforeCancel ? 0 : 1;
+  } catch (error) {
+    // The verdict is the probe's output, so a crash belongs in it rather than
+    // only on stderr -- an agent reads the file, not the terminal.
+    verdict.error = `probe crashed: ${error instanceof Error ? error.message : String(error)}`;
+    process.exitCode = 1;
+    console.error(verdict.error);
   } finally {
     // The tab may not exist: `openTab` itself can throw, and then there is
     // nothing to tidy but the socket.
@@ -266,6 +275,10 @@ async function main() {
       await bestEffort(() => closeTab(connection, targetId));
     }
     connection.close();
+
+    // Last, so it happens on every path -- including a crash, where the partial
+    // verdict plus the capture beside it are the only diagnostics.
+    await bestEffort(() => writeVerdict(verdict));
   }
 }
 
