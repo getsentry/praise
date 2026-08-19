@@ -13,5 +13,8 @@ module.exports = {
         },
       },
     ],
+    '^.+\\.m?js$': ['@swc/jest', { jsc: { parser: { syntax: 'ecmascript' } } }],
   },
+  // `text-field-edit` is ESM only, and node_modules is not transformed by default.
+  transformIgnorePatterns: ['/node_modules/(?!text-field-edit/)'],
 };
