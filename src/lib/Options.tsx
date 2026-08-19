@@ -46,7 +46,7 @@ export const Options = () => {
     <>
       <h2>Review Praises</h2>
       <TextareaAutosize
-        className="textarea"
+        minRows={4}
         onChange={event => {
           reviewsChanged(event.target.value);
         }}
@@ -55,7 +55,7 @@ export const Options = () => {
 
       <h2>Comment Praises</h2>
       <TextareaAutosize
-        className="textarea"
+        minRows={4}
         onChange={event => {
           commentsChanged(event.target.value);
         }}
