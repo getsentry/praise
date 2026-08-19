@@ -20,6 +20,10 @@ export const DEFAULT_APPROVE_GIFS = [
   'https://media.giphy.com/media/143vPc6b08locw/giphy.gif',
   'https://media.giphy.com/media/pwQdvTbFhds3e/giphy.gif',
   'https://media.giphy.com/media/iP3GyAWP9NrlpI0Ilt/giphy.gif',
+  'https://media.giphy.com/media/WNwErIxqX18xmm92UX/giphy.gif',
+  'https://media.giphy.com/media/V2ojLo7PvhVug/giphy.gif',
+  'https://media.giphy.com/media/zeeYz6iGGoaA0/giphy.gif',
+  'https://media.giphy.com/media/bATq9Ga54acx2/giphy.gif',
 ];
 
 /** Values are `unknown`: storage is shared with the options page and older versions. */
