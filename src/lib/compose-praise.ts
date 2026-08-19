@@ -70,21 +70,23 @@ export function composePraise(
  * neither test and survives.
  */
 function stripOurGif(current: string, gifs: string[], approveComment: string): string {
-  const start = current.lastIndexOf('\n\n![');
-  const image = start === -1 ? (current.startsWith('![') ? current : undefined) : current.slice(start + 2);
-  if (image === undefined) {
+  // Only an image the body ends on. One with your text below it is yours to
+  // keep, and slicing from its start would delete what you wrote.
+  const body = current.trimEnd();
+  const match = /(^|\n\n)!\[([\s\S]*)\]\(([^)]*)\)$/.exec(body);
+  if (!match) {
     return current;
   }
+
+  const [, , alt, url] = match;
 
   // Either half suffices: the url survives rewording the praise, the alt
   // survives dropping the gif from the list.
-  const byUrl = gifs.some(gif => image.endsWith(`](${gif})`));
-  const byAlt = approveComment !== '' && image.startsWith(`![${escapeAlt(approveComment)}](`);
-  if (!byUrl && !byAlt) {
+  if (!gifs.includes(url) && (approveComment === '' || alt !== escapeAlt(approveComment))) {
     return current;
   }
 
-  return start === -1 ? '' : current.slice(0, start);
+  return body.slice(0, match.index);
 }
 
 /**

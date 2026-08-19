@@ -135,6 +135,20 @@ describe('composeApprove', () => {
     expect(composeApprove('LGTM', [GIF], `![LGTM](${GIF})`, pickSequence(0))).toBe(`LGTM\n\n![LGTM](${GIF})`);
   });
 
+  /** Anything below our gif is yours, and deleting it would be silent data loss. */
+  test('keeps text written below our gif', () => {
+    const current = `LGTM\n\n![LGTM](${GIF})\n\nalso nice tests`;
+
+    expect(composeApprove('LGTM', [GIF, OTHER_GIF], current, pickSequence(0.9))).toContain('also nice tests');
+  });
+
+  /** Trailing whitespace must not defeat the url match once the alt has stopped matching. */
+  test('recognises our gif by url despite trailing whitespace', () => {
+    const current = `LGTM\n\n![LGTM](${GIF})\n`;
+
+    expect(composeApprove('Looks great', [GIF], current, pickSequence(0))).toBe(`LGTM\n\n![Looks great](${GIF})`);
+  });
+
   /** A gif you pasted yourself is your text, and must not be eaten. */
   test('leaves a gif that is not one of the configured ones alone', () => {
     const mine = 'look\n\n![mine](https://example.com/mine.gif)';
