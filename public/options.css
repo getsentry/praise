@@ -20,3 +20,74 @@ body > main {
 h2 {
   --pico-font-size: 1.25rem;
 }
+
+.praise-items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The divider separates rows, so the last one would just fence off the add box. */
+.praise-item:not(:last-child) {
+  border-bottom: var(--pico-border-width) solid var(--pico-muted-border-color);
+}
+
+.praise-item {
+  display: flex;
+  align-items: center;
+}
+
+/* Pico styles a bare <button> as a large filled primary button; this one should read as text. */
+.praise-text {
+  flex: 1;
+  margin: 0;
+  /* No horizontal padding: rows line up with the heading above them. */
+  padding: var(--pico-form-element-spacing-vertical) 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  /*
+   * Not `var(--pico-color)`: Pico's button rule redefines that variable as
+   * `--pico-primary-inverse` for filled buttons, which paints the label white
+   * on the page background. Inherit the surrounding text colour instead.
+   */
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.praise-text:hover,
+.praise-text:focus {
+  background-color: var(--pico-form-element-active-background-color);
+}
+
+.praise-delete {
+  margin: 0;
+  /* Right padding dropped for the same reason: the row spans the full column. */
+  padding: var(--pico-form-element-spacing-vertical) 0 var(--pico-form-element-spacing-vertical)
+    var(--pico-form-element-spacing-horizontal);
+  border: none;
+  background: none;
+  box-shadow: none;
+  color: var(--pico-muted-color);
+  font-size: 0.875em;
+  cursor: pointer;
+}
+.praise-delete:hover,
+.praise-delete:focus {
+  color: var(--pico-del-color);
+}
+
+/* box-shadow:none above drops Pico's own focus ring, so both buttons need one back. */
+.praise-text:focus-visible,
+.praise-delete:focus-visible {
+  outline: var(--pico-outline-width) solid var(--pico-primary-focus);
+}
+
+/* Pico gives inputs a bottom margin; without removing it the row would jump height when this swaps in. */
+.praise-edit,
+.praise-add {
+  margin-bottom: 0;
+}
