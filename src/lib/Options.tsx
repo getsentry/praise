@@ -79,7 +79,7 @@ export const Options = () => {
          */}
         <GifList label="GIFs" items={approveGifs} onChange={approveGifsChanged} hideHeading />
       </section>
-      <PraiseList label="Comment Praises" items={comments} onChange={commentsChanged} />
+      <PraiseList label="Praising PR Review Comments" items={comments} onChange={commentsChanged} />
     </>
   );
 };
