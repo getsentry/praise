@@ -1,13 +1,21 @@
 import React, { useRef, useState } from 'react';
 
-type Props = { label: string; items: string[]; onChange: (items: string[]) => void };
+type Props = {
+  label: string;
+  items: string[];
+  onChange: (items: string[]) => void;
+  /** For callers that supply their own heading; `label` still names the controls. */
+  hideHeading?: boolean;
+  /** Renders each item as an image alongside its text. For lists of gif urls. */
+  showPreview?: boolean;
+};
 
 /**
  * Editable list of praises. Purely presentational: it never touches storage,
  * it only reports the complete next array through `onChange` and lets the
  * caller decide what to persist.
  */
-export const PraiseList = ({ label, items, onChange }: Props) => {
+export const PraiseList = ({ label, items, onChange, hideHeading = false, showPreview = false }: Props) => {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [draft, setDraft] = useState('');
   const [addValue, setAddValue] = useState('');
@@ -73,9 +81,11 @@ export const PraiseList = ({ label, items, onChange }: Props) => {
     commitEdit();
   }
 
+  const Wrapper = hideHeading ? 'div' : 'section';
+
   return (
-    <section className="praise-list">
-      <h2>{label}</h2>
+    <Wrapper className={hideHeading ? undefined : 'praise-list'}>
+      {!hideHeading && <h2>{label}</h2>}
       <ul className="praise-items">
         {items.map((item, index) =>
           editingIndex === index ? (
@@ -94,6 +104,14 @@ export const PraiseList = ({ label, items, onChange }: Props) => {
             </li>
           ) : (
             <li className="praise-item" key={index}>
+              {showPreview && (
+                /*
+                 * Decorative: the row's own text already carries the url, so an
+                 * alt would just repeat it to a screen reader. A broken url
+                 * shows as a broken image, which is the feedback the user wants.
+                 */
+                <img className="praise-preview" src={item} alt="" loading="lazy" />
+              )}
               <button
                 type="button"
                 className="praise-text"
@@ -128,6 +146,6 @@ export const PraiseList = ({ label, items, onChange }: Props) => {
         }}
         onKeyDown={handleAddKeyDown}
       />
-    </section>
+    </Wrapper>
   );
 };

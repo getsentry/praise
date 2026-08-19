@@ -21,6 +21,11 @@ h2 {
   --pico-font-size: 1.25rem;
 }
 
+/* A step down from h2, so the nesting under Approve Comment is visible at a glance. */
+h3 {
+  --pico-font-size: 1rem;
+}
+
 .praise-items {
   margin: 0;
   padding: 0;
@@ -90,4 +95,45 @@ h2 {
 .praise-edit,
 .praise-add {
   margin-bottom: 0;
+}
+
+/* Indented so it reads as part of the Approve Comment block rather than a peer of it. */
+.gif-section {
+  margin-left: var(--pico-spacing);
+  padding-left: var(--pico-spacing);
+  border-left: var(--pico-border-width) solid var(--pico-muted-border-color);
+}
+
+.gif-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--pico-form-element-spacing-horizontal);
+  /* Pico's own switch margin would push it away from the list it governs. */
+  margin-bottom: var(--pico-form-element-spacing-vertical);
+}
+.gif-toggle input {
+  margin-bottom: 0;
+}
+
+.praise-preview {
+  /*
+   * Fixed box so rows keep an even height while the gifs load, and so a very
+   * wide or very tall gif cannot stretch the row. `contain` rather than
+   * `cover`: a preview that crops the joke is not a preview.
+   */
+  flex: none;
+  width: 9rem;
+  height: 6rem;
+  margin: var(--pico-form-element-spacing-vertical) var(--pico-form-element-spacing-horizontal)
+    var(--pico-form-element-spacing-vertical) 0;
+  border-radius: var(--pico-border-radius);
+  background-color: var(--pico-form-element-background-color);
+  object-fit: contain;
+}
+
+/* The url is long and monospaced text makes the differing id easier to scan. */
+.praise-preview + .praise-text {
+  font-family: var(--pico-font-family-monospace);
+  font-size: 0.8125em;
+  overflow-wrap: anywhere;
 }

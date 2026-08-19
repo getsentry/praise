@@ -1,11 +1,19 @@
 import { computeSeed } from './lib/seed-defaults';
 
 chrome.runtime.onInstalled.addListener(details => {
-  if (details.reason !== chrome.runtime.OnInstalledReason.INSTALL) {
+  // Updates seed too, not just fresh installs: keys added by a later version --
+  // the gif list and its toggle -- would otherwise never reach anyone who
+  // already had the extension. `computeSeed` only fills what is absent, so
+  // existing praises survive.
+  const { INSTALL, UPDATE } = chrome.runtime.OnInstalledReason;
+  if (details.reason !== INSTALL && details.reason !== UPDATE) {
     return;
   }
 
-  chrome.storage.sync.get(['reviews', 'comments'], items => {
+  // `reviews` is read but never written: it is the pre-`approveComment` list, kept
+  // only so `computeSeed` can carry a customised entry over.
+  const keys = ['reviews', 'approveComment', 'comments', 'approveGifs', 'approveGifsEnabled'];
+  chrome.storage.sync.get(keys, items => {
     const seed = computeSeed(items);
 
     if (Object.keys(seed).length > 0) {
