@@ -1,5 +1,5 @@
 import type { ChangeEvent, KeyboardEvent } from 'react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useEditableList } from './useEditableList';
 
 type Props = {
@@ -14,11 +14,26 @@ const LOAD_TIMEOUT_MS = 8000;
 const ADD_ERROR_ID = 'gif-add-error';
 
 /**
+ * A bare `.gif` suffix isn't enough of a check on its own: without also
+ * pinning the scheme, a string like `javascript:alert(1)//x.gif` would pass
+ * and later get rendered as an `<img src>`.
+ */
+function isValidGifUrl(value: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+  return (url.protocol === 'http:' || url.protocol === 'https:') && url.pathname.toLowerCase().endsWith('.gif');
+}
+
+/**
  * Editable list of GIF urls. Purely presentational: it never touches
  * storage, it only reports the complete next array through `onChange` and
  * lets the caller decide what to persist. Unlike PraiseList, adding a value
- * is validated asynchronously: it must end with `.gif` and must actually
- * load as an image before it is accepted.
+ * is validated asynchronously: it must be an http(s) URL ending in `.gif`
+ * and must actually load as an image before it is accepted.
  */
 export const GifList = ({ label, items, onChange, hideHeading = false }: Props) => {
   const [addValue, setAddValue] = useState('');
@@ -26,6 +41,13 @@ export const GifList = ({ label, items, onChange, hideHeading = false }: Props) 
   const [isChecking, setIsChecking] = useState(false);
   const { editingIndex, draft, setDraft, startEdit, deleteItem, handleEditKeyDown, handleEditBlur, addInputRef } =
     useEditableList(items, onChange);
+  // The load check is async, so edits/deletes can land while it's pending;
+  // reading this ref instead of the closed-over `items` at commit time keeps
+  // the add from clobbering whatever happened in the meantime.
+  const itemsRef = useRef(items);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   function handleAddChange(event: ChangeEvent<HTMLInputElement>) {
     setAddValue(event.target.value);
@@ -36,8 +58,8 @@ export const GifList = ({ label, items, onChange, hideHeading = false }: Props) 
     if (event.key === 'Enter') {
       const trimmed = addValue.trim();
       if (trimmed === '') return;
-      if (!trimmed.toLowerCase().endsWith('.gif')) {
-        setError('URL must end with .gif');
+      if (!isValidGifUrl(trimmed)) {
+        setError('Must be a valid http(s) URL ending in .gif');
         return;
       }
 
@@ -52,7 +74,7 @@ export const GifList = ({ label, items, onChange, hideHeading = false }: Props) 
 
       img.onload = () => {
         clearTimeout(timeoutId);
-        onChange([...items, trimmed]);
+        onChange([...itemsRef.current, trimmed]);
         setAddValue('');
         setError(null);
         setIsChecking(false);

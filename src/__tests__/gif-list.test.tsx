@@ -105,7 +105,18 @@ describe('GifList', () => {
 
       await user.type(addInput(), 'https://example.com/not-a-gif{Enter}');
 
-      expect(await screen.findByRole('alert')).toHaveTextContent('URL must end with .gif');
+      expect(await screen.findByRole('alert')).toHaveTextContent('Must be a valid http(s) URL ending in .gif');
+      expect(onChange).not.toHaveBeenCalled();
+      expect(fakeImages).toHaveLength(0);
+    });
+
+    test('Enter with a non-http(s) scheme is rejected even if it ends in .gif', async () => {
+      const user = userEvent.setup();
+      const onChange = renderList([]);
+
+      await user.type(addInput(), 'javascript:alert(1)//x.gif{Enter}');
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Must be a valid http(s) URL ending in .gif');
       expect(onChange).not.toHaveBeenCalled();
       expect(fakeImages).toHaveLength(0);
     });
@@ -176,6 +187,22 @@ describe('GifList', () => {
       await user.type(addInput(), 'x');
 
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    test('a delete made while a load check is pending is not reverted when the check later succeeds', async () => {
+      const user = userEvent.setup();
+      const onChange = renderList(['a.gif']);
+
+      await user.type(addInput(), 'https://example.com/nice.gif{Enter}');
+      await user.click(deleteButtonFor('a.gif'));
+      expect(onChange).toHaveBeenLastCalledWith([]);
+
+      act(() => {
+        lastImage().onload?.();
+      });
+
+      expect(onChange).toHaveBeenLastCalledWith(['https://example.com/nice.gif']);
+      expect(rowTexts()).toEqual(['https://example.com/nice.gif']);
     });
 
     test('Escape clears both the value and the error', async () => {
