@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { GifList } from './GifList';
 import { PraiseList } from './PraiseList';
 import { PraiseText } from './PraiseText';
 
@@ -71,7 +72,7 @@ export const Options = () => {
          * would read as "your GIFs are gone" rather than "paused", and the
          * content script already treats off the same as an empty list.
          */}
-        <PraiseList label="Approve GIFs" items={approveGifs} onChange={approveGifsChanged} hideHeading showPreview />
+        <GifList label="Approve GIFs" items={approveGifs} onChange={approveGifsChanged} hideHeading />
       </section>
       <PraiseList label="Comment Praises" items={comments} onChange={commentsChanged} />
     </>
