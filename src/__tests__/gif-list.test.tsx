@@ -154,6 +154,22 @@ describe('GifList', () => {
       expect(addInput()).not.toBeDisabled();
     });
 
+    test('resubmitting the same failed URL without editing it clears the stale error while re-checking', async () => {
+      const user = userEvent.setup();
+      renderList([]);
+
+      await user.type(addInput(), 'https://example.com/nice.gif{Enter}');
+      act(() => {
+        lastImage().onerror?.();
+      });
+      expect(await screen.findByRole('alert')).toBeInTheDocument();
+
+      await user.keyboard('{Enter}');
+
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(addInput()).toBeDisabled();
+    });
+
     test('a load that neither succeeds nor fails within 8s is treated as a failure', async () => {
       jest.useFakeTimers();
       const user = userEvent.setup({ delay: null });

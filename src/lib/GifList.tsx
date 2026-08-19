@@ -64,6 +64,7 @@ export const GifList = ({ label, items, onChange, hideHeading = false }: Props) 
       }
 
       setIsChecking(true);
+      setError(null);
       const img = new Image();
       const timeoutId = setTimeout(() => {
         img.onload = null;
