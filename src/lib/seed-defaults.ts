@@ -33,6 +33,23 @@ export type StoredSettings = {
   approveQuotesEnabled?: unknown;
 };
 
+/**
+ * Keys to read before seeding. Kept beside `computeSeed` rather than in
+ * `background.ts`: seeding runs on update as well as install, so a key missing
+ * here arrives as `undefined` and is seeded over the user's own choice.
+ *
+ * `reviews` is read but never written: it is the pre-`approveComment` list, kept
+ * only so a customised entry can be carried over.
+ */
+export const STORED_KEYS: (keyof StoredSettings)[] = [
+  'reviews',
+  'approveComment',
+  'comments',
+  'approveGifs',
+  'approveGifsEnabled',
+  'approveQuotesEnabled',
+];
+
 /** Keys to write back. A key is absent when it needs no seeding. */
 export type SeedPatch = {
   approveComment?: string;

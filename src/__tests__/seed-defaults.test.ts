@@ -3,6 +3,7 @@ import {
   DEFAULT_APPROVE_COMMENT,
   DEFAULT_APPROVE_GIFS,
   DEFAULT_COMMENTS,
+  STORED_KEYS,
   type StoredSettings,
 } from '../lib/seed-defaults';
 
@@ -312,5 +313,19 @@ describe('computeSeed / the quotes toggle', () => {
 
       expect(patch.approveQuotesEnabled).toBe(false);
     }
+  });
+});
+
+describe('STORED_KEYS', () => {
+  /**
+   * The bug this guards: seeding runs on update too, so a key the reader omits
+   * arrives as `undefined` and gets seeded again, overwriting whatever the user
+   * had chosen.
+   */
+  test('covers every key computeSeed writes, so an update re-seeds nothing', () => {
+    const fresh: Record<string, unknown> = computeSeed({});
+    const readBack = Object.fromEntries(STORED_KEYS.filter(key => key in fresh).map(key => [key, fresh[key]]));
+
+    expect(computeSeed(readBack)).toEqual({});
   });
 });
