@@ -50,14 +50,82 @@ const openDiffComment = `(() => {
 /** GitHub redirects `/files` here, and the review trigger exists only on it. */
 const changesTab = '/changes';
 
+/** Shared by `review` and `soft-nav-review`: both end at the same dialog. */
+const openReviewSteps = [
+  { name: 'open-review-menu', expression: clickByCaption('/Submit review|Review changes|Add your review/i') },
+  { name: 'await-textarea', awaitSelector: 'textarea' },
+];
+
+/** Throws rather than silently probing the wrong page when the URL is not a PR. */
+function parsePullUrl(url) {
+  const { origin, pathname } = new URL(url);
+  const match = pathname.match(/^\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+  if (!match) {
+    throw new Error(`expected a pull request URL, got ${url}`);
+  }
+  const [, owner, repo, number] = match;
+  return { origin, owner, repo, number, path: `/${owner}/${repo}/pull/${number}` };
+}
+
+/**
+ * Clicks the PR list's link to one specific pull request.
+ *
+ * Matched by normalized pathname, not by number alone -- `/pull/2` is a
+ * substring of `/pull/22`, and a loose match would click the wrong row.
+ */
+const clickPullLink = pullPath => `(() => {
+  for (const link of document.querySelectorAll('a[href*="/pull/"]')) {
+    if (new URL(link.href, location.origin).pathname.replace(/\\/$/, '') === ${JSON.stringify(pullPath)}) {
+      link.click();
+      return true;
+    }
+  }
+  return false;
+})()`;
+
+/**
+ * Clicks through to a PR's Files tab.
+ *
+ * Matched on href, not caption: the tab is a plain `<a>`, which
+ * `clickByCaption` deliberately does not scan.
+ */
+const clickFilesTab = pullPath => `(() => {
+  for (const link of document.querySelectorAll('a[href]')) {
+    if (new URL(link.href, location.origin).pathname === ${JSON.stringify(`${pullPath}/files`)}) {
+      link.click();
+      return true;
+    }
+  }
+  return false;
+})()`;
+
 export const scenarios = {
   review: {
     description: 'the "Finish your review" dialog',
     navigateSuffix: changesTab,
-    steps: [
-      { name: 'open-review-menu', expression: clickByCaption('/Submit review|Review changes|Add your review/i') },
-      { name: 'await-textarea', awaitSelector: 'textarea' },
-    ],
+    steps: openReviewSteps,
+  },
+  'soft-nav-review': {
+    description: 'the "Finish your review" dialog, reached by same-document navigation from the PR list',
+    // Regression coverage for the bug a direct load can never reproduce: Chrome
+    // only evaluates `content_scripts.matches` on a real document load, and
+    // GitHub's own navigation between these pages is same-document, so a fix
+    // that only works on the first load would still pass every other scenario.
+    navigateTo: url => {
+      const { origin, owner, repo } = parsePullUrl(url);
+      return `${origin}/${owner}/${repo}/pulls`;
+    },
+    steps: url => {
+      const { path } = parsePullUrl(url);
+      return [
+        { name: 'click-pr-link', expression: clickPullLink(path) },
+        { name: 'await-pr-path', awaitExpression: `location.pathname.replace(/\\/$/, '') === ${JSON.stringify(path)}` },
+        { name: 'click-files-tab', expression: clickFilesTab(path) },
+        // GitHub redirects `/files` to `/changes`; either is the page the review trigger lives on.
+        { name: 'await-changes-path', awaitExpression: `/\\/(files|changes)$/.test(location.pathname)` },
+        ...openReviewSteps,
+      ];
+    },
   },
   'diff-comment': {
     description: 'an inline diff comment editor',

@@ -79,10 +79,17 @@ kept in `test/web-ext-profile/` and lasts for weeks.
 With that running, check a live PR page from another terminal:
 
 ```sh
-npm run probe                  # the review dialog on the test PR
-npm run probe -- diff-comment  # an inline diff comment editor
+npm run probe                     # the review dialog on the test PR
+npm run probe -- diff-comment     # an inline diff comment editor
+npm run probe -- soft-nav-review  # the review dialog, reached by clicking through from the PR list
 npm run probe -- review https://github.com/getsentry/praise/pull/7
 ```
+
+`soft-nav-review` opens the repository's PR list and clicks through to the PR
+and its Files tab, rather than loading the PR URL directly. Chrome only
+evaluates `content_scripts.matches` on a real document load, and GitHub's own
+navigation between these pages is same-document, so this is the only scenario
+that can catch a content script that stops running after in-app navigation.
 
 It exits 0 only when the praise button sits immediately before Cancel, and
 writes three files to `.probe/`:

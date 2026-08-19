@@ -8,7 +8,7 @@
 
 export const DEFAULT_URL = 'https://github.com/getsentry/praise/pull/22';
 
-export const SCENARIOS = ['review', 'diff-comment'];
+export const SCENARIOS = ['review', 'diff-comment', 'soft-nav-review'];
 
 export function parseArgs(argv) {
   let scenario;
