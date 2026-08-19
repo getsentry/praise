@@ -1,5 +1,7 @@
 module.exports = {
-  roots: ['src'],
+  roots: ['src', 'scripts'],
+  moduleFileExtensions: ['js', 'mjs', 'ts', 'tsx', 'json', 'node'],
+  testMatch: ['**/__tests__/**/*.ts', '**/*.test.ts', '**/*.test.tsx', '**/*.test.mjs'],
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/src/test-support/jest.setup.ts'],
   transform: {

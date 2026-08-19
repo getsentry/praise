@@ -24,6 +24,11 @@ npm run build     # typecheck + production bundle
 
 Run `npm test`, `npm run typecheck`, and `npm run verify` before proposing changes.
 
+None of them load the extension, so none of them can tell you the button
+actually appears — two bugs that broke it everywhere passed all of them. For
+anything affecting placement, drive a real PR page with `npm run probe`; see
+[the fast feedback loop](CONTRIBUTING.md#fast-feedback-loop).
+
 ## Code style
 
 - Formatting and linting come from the oxc toolchain (`oxfmt`, `oxlint`); do not hand-format.
