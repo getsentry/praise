@@ -20,9 +20,33 @@ function pick<T>(items: T[], random: () => number): T {
   return items[Math.floor(random() * items.length)];
 }
 
-/** @param alt Defaults to the text, which only suits a short praise. */
+/**
+ * A body may span lines -- a quote sits under the approval comment -- but an alt
+ * cannot: a newline closes `![...]` early and spills the rest out as literal
+ * markdown. The first line stands in for the whole.
+ */
+function firstLine(text: string): string {
+  return text.split('\n', 1)[0];
+}
+
+/** @param alt Defaults to the text. Only its first line is used. */
 function build(text: string, gif: string | undefined, alt: string = text): string {
-  return gif ? `${text}\n\n![${escapeAlt(alt)}](${gif})` : text;
+  return gif ? `${text}\n\n![${escapeAlt(firstLine(alt))}](${gif})` : text;
+}
+
+/**
+ * Bodies an Approve click may write: the approval comment, with a quote under it
+ * for each configured quote.
+ *
+ * @param quotes Empty -- which is also how a disabled toggle arrives here --
+ *   yields the comment on its own.
+ */
+export function approveBodies(approveComment: string, quotes: string[]): string[] {
+  if (quotes.length === 0) {
+    return [approveComment];
+  }
+
+  return quotes.map(quote => [approveComment, quote].filter(part => part.trim() !== '').join('\n\n'));
 }
 
 /**
@@ -69,7 +93,7 @@ export function composePraise(
  * the box already holds what we wrote. A gif you pasted yourself matches
  * neither test and survives.
  */
-function stripOurGif(current: string, gifs: string[], approveComment: string): string {
+function stripOurGif(current: string, gifs: string[], approveTexts: string[]): string {
   // The last image only, and only if the body ends on it. Scanning for the
   // first would span an image of yours above ours; an image with your text
   // below it is yours to keep.
@@ -87,8 +111,9 @@ function stripOurGif(current: string, gifs: string[], approveComment: string): s
   const [, alt, url] = match;
 
   // Either half suffices: the url survives rewording the praise, the alt
-  // survives dropping the gif from the list.
-  if (!gifs.includes(url) && (approveComment === '' || alt !== escapeAlt(approveComment))) {
+  // survives dropping the gif from the list. Any candidate counts, because the
+  // alt was written by an earlier click that may have picked a different one.
+  if (!gifs.includes(url) && !approveTexts.some(text => alt === escapeAlt(firstLine(text)))) {
     return current;
   }
 
@@ -102,25 +127,32 @@ function stripOurGif(current: string, gifs: string[], approveComment: string): s
  * would be putting words in your mouth, so only the gif goes underneath.
  *
  * Your words cannot be the alt text: a newline closes `![...]` early and spills
- * the rest out as literal markdown. The praise stands in, being single-line.
+ * the rest out as literal markdown. A praise's first line stands in.
  *
- * @param approveComment The configured praise. Empty still leaves a gif to
- *   append under typed text.
+ * @param approveTexts Bodies an Approve click may write, one of which is picked;
+ *   see `approveBodies`. Empty -- or all blank -- means "write nothing", but
+ *   still leaves a gif to append under typed text.
  * @param gifs Gif urls to choose from. Empty yields text on its own.
  * @param current What the textarea holds now, so a second click rerolls.
  * @param random Injected for tests; production passes nothing.
  */
 export function composeApprove(
-  approveComment: string,
+  approveTexts: string[],
   gifs: string[],
   current: string,
   random: () => number = Math.random,
 ): string {
   const usableGifs = gifs.filter(gif => gif.trim() !== '');
-  const typed = stripOurGif(current, usableGifs, approveComment);
+  // Blank entries would be written as an empty body, and an all-blank list
+  // should behave like an empty one. Dropping them also keeps an empty alt from
+  // matching every gif in stripOurGif.
+  const usableTexts = approveTexts.filter(text => text.trim() !== '');
+  const typed = stripOurGif(current, usableGifs, usableTexts);
 
-  if (typed === '' || typed === approveComment) {
-    return composePraise(approveComment === '' ? [] : [approveComment], usableGifs, current, random);
+  // Membership, not equality: the pick differs per click, so an earlier praise
+  // of ours would otherwise be mistaken for words you typed.
+  if (typed === '' || usableTexts.includes(typed)) {
+    return composePraise(usableTexts, usableGifs, current, random);
   }
 
   if (usableGifs.length === 0) {
@@ -128,11 +160,12 @@ export function composeApprove(
   }
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    const candidate = build(typed, pick(usableGifs, random), approveComment);
+    const alt = usableTexts.length > 0 ? pick(usableTexts, random) : '';
+    const candidate = build(typed, pick(usableGifs, random), alt);
     if (candidate !== current) {
       return candidate;
     }
   }
 
-  return build(typed, usableGifs[0], approveComment);
+  return build(typed, usableGifs[0], usableTexts[0] ?? '');
 }

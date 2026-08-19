@@ -30,6 +30,7 @@ export type StoredSettings = {
   comments?: unknown;
   approveGifs?: unknown;
   approveGifsEnabled?: unknown;
+  approveQuotesEnabled?: unknown;
 };
 
 /** Keys to write back. A key is absent when it needs no seeding. */
@@ -38,6 +39,7 @@ export type SeedPatch = {
   comments?: string[];
   approveGifs?: string[];
   approveGifsEnabled?: boolean;
+  approveQuotesEnabled?: boolean;
 };
 
 /**
@@ -57,6 +59,7 @@ function usableText(value: unknown): value is string {
 /**
  * A toggle needs its own rule: `Array.isArray` would read a stored `false` as
  * unseeded and switch gifs back on for anyone who deliberately turned them off.
+ * The same holds inverted for opt-in toggles, where a stored `true` must survive.
  */
 function needsToggleSeeding(value: unknown): boolean {
   return typeof value !== 'boolean';
@@ -80,6 +83,10 @@ export function computeSeed(items: StoredSettings): SeedPatch {
   }
   if (needsToggleSeeding(items.approveGifsEnabled)) {
     seed.approveGifsEnabled = true;
+  }
+  // Opt-in: an update must not start adding quotes to approvals unasked.
+  if (needsToggleSeeding(items.approveQuotesEnabled)) {
+    seed.approveQuotesEnabled = false;
   }
 
   return seed;

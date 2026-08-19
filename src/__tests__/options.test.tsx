@@ -59,10 +59,10 @@ describe('Options', () => {
     // Between the two top-level sections, so the gifs sit with the review they
     // attach to rather than trailing the whole page.
     const headings = screen.getAllByRole('heading').map(heading => heading.textContent);
-    expect(headings).toEqual(['PR Approval', 'GIFs', 'Praising PR Review Comments']);
+    expect(headings).toEqual(['PR Approval', 'Quotes', 'GIFs', 'Praising PR Review Comments']);
   });
 
-  test('reads every key from sync storage on mount, defaulting gifs to on', async () => {
+  test('reads every key from sync storage on mount, defaulting gifs on and quotes off', async () => {
     renderOptions();
 
     await waitFor(() => {
@@ -73,6 +73,7 @@ describe('Options', () => {
       comments: [],
       approveGifs: [],
       approveGifsEnabled: true,
+      approveQuotesEnabled: false,
     });
   });
 
@@ -295,5 +296,74 @@ describe('Options / approve gifs', () => {
     await waitFor(() => {
       expect(storage.set).toHaveBeenCalledWith({ approveGifs: [gif] });
     });
+  });
+});
+
+describe('Options / approve quotes', () => {
+  function toggle(): HTMLInputElement {
+    return screen.getByRole('switch', { name: 'Add a random quote below your PR Approval Comment' });
+  }
+
+  test('nests Quotes under PR Approval as a subheading', () => {
+    renderOptions();
+
+    expect(screen.getByRole('heading', { name: 'Quotes', level: 3 })).toBeInTheDocument();
+  });
+
+  /** A toggle only -- the quote list is curated in the repo, not editable here. */
+  test('offers no quote list to edit', async () => {
+    renderOptions();
+
+    await waitFor(() => {
+      expect(toggle()).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('textbox', { name: 'Add to Quotes' })).not.toBeInTheDocument();
+  });
+
+  test('defaults the toggle to off when storage holds nothing', async () => {
+    renderOptions();
+
+    await waitFor(() => {
+      expect(storage.get).toHaveBeenCalled();
+    });
+    expect(toggle()).not.toBeChecked();
+  });
+
+  test('reflects the stored toggle state', async () => {
+    renderOptions({ approveQuotesEnabled: true });
+
+    await waitFor(() => {
+      expect(toggle()).toBeChecked();
+    });
+  });
+
+  test('persists the toggle without touching any other key', async () => {
+    const user = userEvent.setup();
+    renderOptions({ approveComment: 'LGTM 🚀' });
+    await waitFor(() => {
+      expect(storage.get).toHaveBeenCalled();
+    });
+
+    await user.click(toggle());
+
+    expect(storage.set).toHaveBeenCalledWith({ approveQuotesEnabled: true });
+    expect(toggle()).toBeChecked();
+  });
+
+  /** Quotes pause the approval comment rather than replace it, so it stays editable. */
+  test('keeps the approval comment editable while quotes are on', async () => {
+    const user = userEvent.setup();
+    renderOptions({ approveComment: 'LGTM 🚀', approveQuotesEnabled: true });
+    const field = () => screen.getByRole('textbox', { name: 'PR Approval Comment' });
+    await waitFor(() => {
+      expect(field()).toHaveValue('LGTM 🚀');
+    });
+
+    expect(field()).toBeEnabled();
+
+    await user.clear(field());
+    await user.type(field(), 'Ship it 🚢{Enter}');
+
+    expect(storage.set).toHaveBeenCalledWith({ approveComment: 'Ship it 🚢' });
   });
 });
