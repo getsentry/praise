@@ -274,5 +274,38 @@ describe('PraiseList', () => {
 
       expect(addInput()).toHaveFocus();
     });
+
+    /*
+     * Deleting while another row is open relies on blur landing before click,
+     * so the delete is built from the committed list rather than the draft's
+     * stale one. These pin that ordering in both directions.
+     */
+    test('deleting a later row keeps an edit in progress above it', async () => {
+      const user = userEvent.setup();
+      const onChange = renderList(['LGTM', 'Nice']);
+
+      await user.click(screen.getByRole('button', { name: 'LGTM' }));
+      const input = editInputFor('LGTM');
+      await user.clear(input);
+      await user.type(input, 'Great job');
+      await user.click(deleteButtonFor('Nice'));
+
+      expect(onChange).toHaveBeenLastCalledWith(['Great job']);
+      expect(rowTexts()).toEqual(['Great job']);
+    });
+
+    test('deleting an earlier row keeps an edit in progress below it', async () => {
+      const user = userEvent.setup();
+      const onChange = renderList(['LGTM', 'Nice']);
+
+      await user.click(screen.getByRole('button', { name: 'Nice' }));
+      const input = editInputFor('Nice');
+      await user.clear(input);
+      await user.type(input, 'Thanks');
+      await user.click(deleteButtonFor('LGTM'));
+
+      expect(onChange).toHaveBeenLastCalledWith(['Thanks']);
+      expect(rowTexts()).toEqual(['Thanks']);
+    });
   });
 });
