@@ -163,12 +163,13 @@ async function main() {
   let targetId;
   let sessionId;
 
-  // A stale verdict from an earlier run is worse than none: a reader cannot tell
-  // it apart from this run's result. Clear it before the first thing that can
-  // throw, and write the real one in the `finally`.
-  await rm(`${OUTPUT_DIR}/verdict.json`, { force: true });
-
   try {
+    // Stale artifacts are worse than none: a reader cannot tell last run's
+    // capture from this one's, and a crash verdict sitting beside a previous
+    // success's screenshot reads as evidence for it. Clear all three, inside the
+    // `try` so a filesystem error still reaches the socket cleanup below.
+    await clearArtifacts();
+
     ({ targetId, sessionId } = await openTab(connection, target));
 
     // GitHub renders progressively and our content script retries for two
@@ -276,10 +277,18 @@ async function main() {
     }
     connection.close();
 
-    // Last, so it happens on every path -- including a crash, where the partial
-    // verdict plus the capture beside it are the only diagnostics.
+    // Last, so it happens on every path. After a crash this may be the only
+    // artifact -- the capture is written earlier and a crash can precede it.
     await bestEffort(() => writeVerdict(verdict));
   }
+}
+
+const ARTIFACTS = ['verdict.json', 'editor.png', 'editor.html'];
+
+/** Drops every artifact from the previous run, so none can be mistaken for this one's. */
+async function clearArtifacts() {
+  await mkdir(OUTPUT_DIR, { recursive: true });
+  await Promise.all(ARTIFACTS.map(name => rm(`${OUTPUT_DIR}/${name}`, { force: true })));
 }
 
 async function writeVerdict(verdict) {
