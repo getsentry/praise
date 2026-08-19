@@ -14,7 +14,31 @@ function addInput(label: string): HTMLInputElement {
   return screen.getByRole('textbox', { name: `Add to ${label}` });
 }
 
+/**
+ * GifList validates a new url by actually loading it as an image before
+ * accepting it. These tests aren't exercising that validation (gif-list.test
+ * covers it directly) so this fake `Image` just succeeds asynchronously,
+ * matching what a real image load would eventually do.
+ */
+class AutoLoadingImage {
+  onload: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+
+  set src(_value: string) {
+    setTimeout(() => this.onload?.());
+  }
+}
+
+let originalImage: typeof Image;
+
+beforeEach(() => {
+  originalImage = globalThis.Image;
+  // @ts-expect-error -- test double, doesn't need to implement the full Image interface
+  globalThis.Image = AutoLoadingImage;
+});
+
 afterEach(() => {
+  globalThis.Image = originalImage;
   uninstallChromeMock();
   jest.clearAllMocks();
 });
@@ -252,7 +276,9 @@ describe('Options / approve gifs', () => {
 
     await user.type(addInput('Approve GIFs'), `${gif}{Enter}`);
 
-    expect(storage.set).toHaveBeenCalledWith({ approveGifs: [gif] });
+    await waitFor(() => {
+      expect(storage.set).toHaveBeenCalledWith({ approveGifs: [gif] });
+    });
   });
 
   /** Turning gifs off must not read as "your list is gone". */
@@ -266,6 +292,8 @@ describe('Options / approve gifs', () => {
 
     await user.type(addInput('Approve GIFs'), `${gif}{Enter}`);
 
-    expect(storage.set).toHaveBeenCalledWith({ approveGifs: [gif] });
+    await waitFor(() => {
+      expect(storage.set).toHaveBeenCalledWith({ approveGifs: [gif] });
+    });
   });
 });
