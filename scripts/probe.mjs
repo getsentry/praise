@@ -57,19 +57,28 @@ async function evaluate(connection, sessionId, expression) {
   return response.result.value;
 }
 
-/** Polls until the selector appears, because React mounts editors late. */
-async function waitForSelector(connection, sessionId, selector, timeoutMs = 10_000) {
+/** Polls an in-page expression until it is truthy, e.g. a selector or a URL check. */
+async function waitForExpression(connection, sessionId, expression, timeoutMs = 10_000) {
   const deadline = Date.now() + timeoutMs;
 
   while (Date.now() < deadline) {
-    const found = await evaluate(connection, sessionId, `Boolean(document.querySelector(${JSON.stringify(selector)}))`);
-    if (found) {
+    if (await evaluate(connection, sessionId, expression)) {
       return true;
     }
     await delay(250);
   }
 
   return false;
+}
+
+/** Polls until the selector appears, because React mounts editors late. */
+function waitForSelector(connection, sessionId, selector, timeoutMs = 10_000) {
+  return waitForExpression(
+    connection,
+    sessionId,
+    `Boolean(document.querySelector(${JSON.stringify(selector)}))`,
+    timeoutMs,
+  );
 }
 
 /**
@@ -140,6 +149,25 @@ async function main() {
   }
 
   const plan = scenarios[scenario];
+
+  // Resolved before the socket is opened: `navigateTo` rejects a URL that is not
+  // a pull request, and a throw with the connection already open would hang the
+  // process rather than fail it -- the same hazard noted on `openTab` below.
+  //
+  // `navigateTo` replaces the URL outright -- e.g. the PR list, not the PR
+  // itself -- where `navigateSuffix` only ever appends to it.
+  let target;
+  try {
+    target = plan.navigateTo
+      ? plan.navigateTo(url)
+      : plan.navigateSuffix
+        ? url.replace(/\/*$/, '') + plan.navigateSuffix
+        : url;
+  } catch (cause) {
+    console.error(cause.message);
+    process.exit(1);
+  }
+
   let connection;
   try {
     connection = await connect();
@@ -154,7 +182,6 @@ async function main() {
     throw cause;
   }
 
-  const target = plan.navigateSuffix ? url.replace(/\/*$/, '') + plan.navigateSuffix : url;
   const verdict = { scenario, url: target, buttonFound: false, beforeCancel: false };
 
   // Opened inside the `try`: an open socket keeps the event loop alive, so a
@@ -193,10 +220,23 @@ async function main() {
 
     verdict.user = state.user;
 
-    for (const step of plan.steps) {
+    // A scenario that navigates to one page and then acts on another -- the PR
+    // list, then a specific PR -- needs the original URL to know which link or
+    // path to look for, so steps may be a function of it rather than a fixed list.
+    const steps = typeof plan.steps === 'function' ? plan.steps(url) : plan.steps;
+
+    for (const step of steps) {
       if (step.awaitSelector) {
         if (!(await waitForSelector(connection, sessionId, step.awaitSelector))) {
           verdict.error = `step "${step.name}" timed out waiting for ${step.awaitSelector}`;
+          break;
+        }
+        continue;
+      }
+
+      if (step.awaitExpression) {
+        if (!(await waitForExpression(connection, sessionId, step.awaitExpression))) {
+          verdict.error = `step "${step.name}" timed out waiting for ${step.awaitExpression}`;
           break;
         }
         continue;
