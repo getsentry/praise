@@ -2,3 +2,8 @@ npm-debug.log
 node_modules/
 dist/
 tmp/
+
+# Probe artifacts and the browser profile it drives.
+.probe/
+test/web-ext-profile/*
+!test/web-ext-profile/.gitkeep
