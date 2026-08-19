@@ -7,20 +7,32 @@
  * survive untouched, because they are exactly what `selectors.ts` matches on.
  */
 
+const secretWord = /token|csrf|session|auth|nonce/i;
+
 const secretAttribute = /\b([\w-]*(?:token|csrf|session|auth|nonce)[\w-]*)="[^"]*"/gi;
 
-/** An input whose name or id looks secret is hiding the secret in its value. */
-const secretInputValue =
-  /(<input\b[^>]*\b(?:name|id)="[^"]*(?:token|csrf|session|auth|nonce)[^"]*"[^>]*\bvalue=)"[^"]*"/gi;
+const inputTag = /<input\b[^>]*>/gi;
 
 const avatarUrl = /https:\/\/avatars\d*\.githubusercontent\.com\/[^"'\s>]*/gi;
 
+/**
+ * Blanks an input's `value` when its name or id looks secret.
+ *
+ * Rewriting the whole tag rather than matching `name` before `value` -- the two
+ * appear in either order, and a pattern that assumes one leaks the other.
+ */
+function redactInputValue(tag) {
+  const identifier = /\b(?:name|id)="([^"]*)"/i.exec(tag);
+  if (!identifier || !secretWord.test(identifier[1])) {
+    return tag;
+  }
+
+  return tag.replace(/\bvalue="[^"]*"/i, 'value="REDACTED"');
+}
+
 export function sanitizeHtml(html) {
-  // secretInputValue must run first: it redacts a `value=` that sits next to a
-  // secret-looking `name=`/`id=`, which is a different attribute than the one
-  // secretAttribute's single pattern would catch on that same tag.
   return html
-    .replace(secretInputValue, '$1"REDACTED"')
+    .replace(inputTag, redactInputValue)
     .replace(secretAttribute, '$1="REDACTED"')
     .replace(avatarUrl, 'REDACTED_AVATAR');
 }

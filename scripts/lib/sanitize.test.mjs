@@ -7,6 +7,18 @@ test('redacts CSRF tokens', () => {
   expect(sanitizeHtml(html)).toContain('REDACTED');
 });
 
+test('redacts the value whichever side of the name it sits on', () => {
+  const html = '<input type="hidden" value="s3cr3t-leak" name="authenticity_token">';
+
+  expect(sanitizeHtml(html)).not.toContain('s3cr3t-leak');
+});
+
+test('leaves an ordinary input value alone', () => {
+  const html = '<input type="text" name="title" value="Fix the thing">';
+
+  expect(sanitizeHtml(html)).toBe(html);
+});
+
 test('redacts any attribute whose name looks like a secret', () => {
   const html = '<div data-csrf-token="abc123" data-session-id="xyz789"></div>';
   const result = sanitizeHtml(html);

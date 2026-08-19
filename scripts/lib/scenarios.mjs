@@ -27,11 +27,19 @@ const clickByCaption = pattern => `(() => {
   return false;
 })()`;
 
+/**
+ * The hover control that opens an inline comment, across GitHub's variants.
+ *
+ * The wait and the click share this one selector -- when they drifted apart, the
+ * narrower wait timed out and reported a placement failure on a trigger that was
+ * present and clickable.
+ */
+const diffCommentTrigger =
+  'button[aria-label="Add comment" i], button[aria-label*="Add a comment" i], button.add-line-comment';
+
 /** Opens the inline editor on the diff line the pointer is over. */
 const openDiffComment = `(() => {
-  const trigger = document.querySelector(
-    'button[aria-label="Add comment" i], button[aria-label*="Add a comment" i], button.add-line-comment',
-  );
+  const trigger = document.querySelector(${JSON.stringify(diffCommentTrigger)});
   if (!trigger) {
     return false;
   }
@@ -59,7 +67,7 @@ export const scenarios = {
       { name: 'hover-diff-line', hoverSelector: 'tr.diff-line-row td.diff-text-cell' },
       // React renders the trigger after the hover lands, so wait for it rather
       // than clicking into the gap.
-      { name: 'await-comment-trigger', awaitSelector: 'button[aria-label="Add comment" i]' },
+      { name: 'await-comment-trigger', awaitSelector: diffCommentTrigger },
       { name: 'open-diff-comment', expression: openDiffComment },
       { name: 'await-textarea', awaitSelector: 'textarea' },
     ],
