@@ -13,6 +13,18 @@ test('redacts the value whichever side of the name it sits on', () => {
   expect(sanitizeHtml(html)).not.toContain('s3cr3t-leak');
 });
 
+test('redacts the CSRF token in the document head', () => {
+  const html = '<meta name="csrf-token" content="LIVE-TOKEN-abc123">';
+
+  expect(sanitizeHtml(html)).not.toContain('LIVE-TOKEN-abc123');
+});
+
+test('leaves an ordinary meta tag alone', () => {
+  const html = '<meta name="viewport" content="width=device-width">';
+
+  expect(sanitizeHtml(html)).toBe(html);
+});
+
 test('leaves an ordinary input value alone', () => {
   const html = '<input type="text" name="title" value="Fix the thing">';
 

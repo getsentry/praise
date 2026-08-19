@@ -13,7 +13,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { parseArgs } from './lib/args.mjs';
 import { CDP_PORT, closeTab, connect, openTab, ProbeConnectionError } from './lib/cdp.mjs';
-import { inspectExpression, pageStateExpression } from './lib/page-probe.mjs';
+import { BUTTON_CLASS, inspectExpression, pageStateExpression } from './lib/page-probe.mjs';
 import { sanitizeHtml } from './lib/sanitize.mjs';
 import { scenarios } from './lib/scenarios.mjs';
 
@@ -206,6 +206,13 @@ async function main() {
       }
       await delay(1500);
     }
+
+    // The content script retries placement for about two seconds, because the
+    // footer it anchors to mounts after the textarea. Wait for the button rather
+    // than inspecting the instant an editor appears -- otherwise a slow footer
+    // reads as a missing button. A timeout here is not an error: absence is a
+    // real result, and the capture below is what explains it.
+    await waitForSelector(connection, sessionId, `.${BUTTON_CLASS}`, 4000);
 
     // Inspect regardless of whether the steps succeeded: when they fail, the
     // capture is the diagnostic.

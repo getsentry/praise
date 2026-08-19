@@ -24,18 +24,26 @@ export const inspectExpression = `(() => {
 
   const caption = element => (element.textContent ?? '').replace(/\\s+/g, ' ').trim();
 
-  // The editor is whatever contains the Cancel button we anchor to, so find
-  // Cancel first and work outwards -- that way the capture is meaningful even
-  // when our own button is missing entirely, which is the interesting case.
-  let cancel;
-  for (const candidate of document.querySelectorAll('button')) {
-    if (caption(candidate) === 'Cancel') {
-      cancel = candidate;
-      break;
-    }
-  }
+  const editorSelector = '[role="dialog"], div[class*="AddCommentEditor"], div[class*="ReviewThread"]';
 
-  const editor = cancel?.closest('[role="dialog"], div[class*="AddCommentEditor"], div[class*="ReviewThread"]')
+  const findCancel = scope => {
+    for (const candidate of scope.querySelectorAll('button')) {
+      if (caption(candidate) === 'Cancel') {
+        return candidate;
+      }
+    }
+    return undefined;
+  };
+
+  // Prefer our own button's editor. Falling back to the first Cancel on the page
+  // is only for the case where the button is missing entirely -- the interesting
+  // failure -- and picking the page's first Cancel then is fine, because there is
+  // no placement to judge, just markup to capture.
+  const ownEditor = button?.closest(editorSelector) ?? null;
+  const cancel = (ownEditor && findCancel(ownEditor)) ?? findCancel(document);
+
+  const editor = ownEditor
+    ?? cancel?.closest(editorSelector)
     ?? cancel?.parentElement?.parentElement
     ?? null;
 
@@ -44,9 +52,14 @@ export const inspectExpression = `(() => {
   return JSON.stringify({
     buttonFound: Boolean(button),
     buttonLabel: button ? caption(button) : null,
-    // nextElementSibling rather than index arithmetic: it is the same relation
-    // \`before.before(button)\` establishes, so it fails exactly when we regress.
-    beforeCancel: Boolean(button && cancel && button.nextElementSibling === cancel),
+    // The next sibling *or* the element containing Cancel: the extension inserts
+    // before whatever \`findInsertionPoint\` picked, and that climbs to a wrapper
+    // when Primer wraps the anchor -- so requiring Cancel itself would fail a
+    // correct placement.
+    beforeCancel: Boolean(
+      button && cancel && button.nextElementSibling
+        && (button.nextElementSibling === cancel || button.nextElementSibling.contains(cancel)),
+    ),
     insertionPoint: cancel
       ? {
           rowTag: cancel.parentElement?.tagName ?? null,
