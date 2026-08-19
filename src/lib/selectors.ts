@@ -202,3 +202,73 @@ export function findInsertionPoint(textarea: HTMLTextAreaElement): InsertionPoin
 
   return undefined;
 }
+
+/**
+ * The review dialog a textarea belongs to, if it is in one.
+ *
+ * Everything below is scoped through here rather than searched for on the page:
+ * the verdict radios and "Submit review" both have look-alikes elsewhere -- the
+ * diff toolbar carries its own "Submit review" trigger -- and clicking the wrong
+ * one would post a review nobody asked for.
+ */
+function reviewScope(textarea: HTMLTextAreaElement): HTMLElement | undefined {
+  return textarea.closest<HTMLElement>(reviewDialog.join(',')) ?? textarea.form ?? undefined;
+}
+
+/** The visible caption of a radio, taken from its wrapping or associated label. */
+function radioLabel(radio: HTMLInputElement, scope: HTMLElement): string {
+  const wrapping = radio.closest('label');
+  const associated = radio.id ? scope.querySelector(`label[for="${CSS.escape(radio.id)}"]`) : null;
+  const text = wrapping?.textContent ?? associated?.textContent ?? radio.getAttribute('aria-label') ?? '';
+
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * The "Approve" verdict radio, or `undefined` when it cannot be used.
+ *
+ * Undefined is the signal that stops an approval going out: GitHub disables this
+ * radio on your own PR, and submitting the dialog without it posts a plain
+ * comment -- which would look like an approval to whoever pressed the button and
+ * be nothing of the sort on the PR.
+ *
+ * The value is the primary match because it is GitHub's own vocabulary, on both
+ * the React and the legacy `pull_request_review[event]` markup. The caption is
+ * the fallback for a rename of the value; it is checked second because it is
+ * localised and the value is not.
+ */
+export function findApproveRadio(textarea: HTMLTextAreaElement): HTMLInputElement | undefined {
+  const scope = reviewScope(textarea);
+  if (!scope) {
+    return undefined;
+  }
+
+  const radios = [...scope.querySelectorAll<HTMLInputElement>('input[type="radio"]')].filter(radio => !radio.disabled);
+
+  return (
+    radios.find(radio => radio.value.toLowerCase() === 'approve') ??
+    radios.find(radio => radioLabel(radio, scope).toLowerCase() === 'approve')
+  );
+}
+
+/**
+ * The dialog's own "Submit review" button, if it is ready to be pressed.
+ *
+ * Matched by caption anchored at the start: the page-level trigger that opens
+ * the dialog reads "Submit reviewReview" once Primer's nested captions are
+ * concatenated, but that one lives outside the scope anyway.
+ */
+export function findSubmitReviewButton(textarea: HTMLTextAreaElement): HTMLButtonElement | undefined {
+  const scope = reviewScope(textarea);
+  if (!scope) {
+    return undefined;
+  }
+
+  for (const button of scope.querySelectorAll<HTMLButtonElement>('button')) {
+    if (!button.disabled && /^submit review/i.test(buttonLabel(button))) {
+      return button;
+    }
+  }
+
+  return undefined;
+}

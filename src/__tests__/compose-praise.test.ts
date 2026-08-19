@@ -1,4 +1,4 @@
-import { composePraise } from '../lib/compose-praise';
+import { composeApprove, composePraise } from '../lib/compose-praise';
 
 /** A stand-in for `Math.random` that walks a fixed list, so picks are predictable. */
 function pickSequence(...values: number[]): () => number {
@@ -64,5 +64,87 @@ describe('composePraise', () => {
 
   test('ignores a gif list holding only blanks', () => {
     expect(composePraise(['LGTM'], ['', '   '], '', pickSequence(0))).toBe('LGTM');
+  });
+});
+
+describe('composeApprove', () => {
+  test('composes praise and gif when the box is empty', () => {
+    expect(composeApprove('LGTM 🚀', [GIF], '', pickSequence(0))).toBe(`LGTM 🚀\n\n![LGTM 🚀](${GIF})`);
+  });
+
+  test('writes nothing when there is no approve comment and no typed text', () => {
+    expect(composeApprove('', [GIF], '', pickSequence(0))).toBe('');
+  });
+
+  test('rerolls the gif when the box still holds what we wrote', () => {
+    const current = `LGTM\n\n![LGTM](${GIF})`;
+
+    expect(composeApprove('LGTM', [GIF, OTHER_GIF], current, pickSequence(0, 0, 0, 0.9))).toBe(
+      `LGTM\n\n![LGTM](${OTHER_GIF})`,
+    );
+  });
+
+  /** The point of the whole function: your words survive, the praise stays out. */
+  test('keeps the typed text and adds only a gif below it', () => {
+    expect(composeApprove('LGTM 🚀', [GIF], 'nice refactor', pickSequence(0))).toBe(
+      `nice refactor\n\n![LGTM 🚀](${GIF})`,
+    );
+  });
+
+  test('leaves typed text untouched when there are no gifs', () => {
+    expect(composeApprove('LGTM 🚀', [], 'nice refactor', pickSequence(0))).toBe('');
+  });
+
+  test('leaves typed text untouched when the gif list holds only blanks', () => {
+    expect(composeApprove('LGTM', ['', '  '], 'nice refactor', pickSequence(0))).toBe('');
+  });
+
+  test('still adds a gif under typed text when no approve comment is configured', () => {
+    expect(composeApprove('', [GIF], 'nice', pickSequence(0))).toBe(`nice\n\n![](${GIF})`);
+  });
+
+  /**
+   * The alt text lives inside `![...]`, so a newline in it closes the image
+   * early and spills the rest of the comment out as literal markdown.
+   */
+  test('never uses multi-line typed text as the alt text', () => {
+    const typed = 'first line\n\nsecond line';
+
+    expect(composeApprove('LGTM', [GIF], typed, pickSequence(0))).toBe(`${typed}\n\n![LGTM](${GIF})`);
+  });
+
+  test('escapes the praise when it stands in as alt text', () => {
+    expect(composeApprove('Nice [work]', [GIF], 'thanks', pickSequence(0))).toBe(
+      `thanks\n\n![Nice \\[work\\]](${GIF})`,
+    );
+  });
+
+  /**
+   * GitHub restores an unsubmitted body as a draft, so the box routinely arrives
+   * already holding our own last write. Appending to that stacks gifs forever.
+   */
+  test('replaces our own gif rather than stacking a second one under it', () => {
+    const current = `nice refactor\n\n![LGTM](${GIF})`;
+
+    expect(composeApprove('LGTM', [GIF, OTHER_GIF], current, pickSequence(0.9))).toBe(
+      `nice refactor\n\n![LGTM](${OTHER_GIF})`,
+    );
+  });
+
+  test('treats a restored praise-and-gif draft as ours, not as typed text', () => {
+    const current = `LGTM\n\n![LGTM](${GIF})`;
+
+    expect(composeApprove('LGTM', [OTHER_GIF], current, pickSequence(0))).toBe(`LGTM\n\n![LGTM](${OTHER_GIF})`);
+  });
+
+  test('strips our gif even when it is the entire body', () => {
+    expect(composeApprove('LGTM', [GIF], `![LGTM](${GIF})`, pickSequence(0))).toBe(`LGTM\n\n![LGTM](${GIF})`);
+  });
+
+  /** A gif you pasted yourself is your text, and must not be eaten. */
+  test('leaves a gif that is not one of the configured ones alone', () => {
+    const mine = 'look\n\n![mine](https://example.com/mine.gif)';
+
+    expect(composeApprove('LGTM', [GIF], mine, pickSequence(0))).toBe(`${mine}\n\n![LGTM](${GIF})`);
   });
 });
