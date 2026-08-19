@@ -98,20 +98,20 @@ h3 {
 }
 
 /* Indented so it reads as part of the Approve Comment block rather than a peer of it. */
-.gif-section {
+.setting-section {
   margin-left: var(--pico-spacing);
   padding-left: var(--pico-spacing);
   border-left: var(--pico-border-width) solid var(--pico-muted-border-color);
 }
 
-.gif-toggle {
+.setting-toggle {
   display: flex;
   align-items: center;
   gap: var(--pico-form-element-spacing-horizontal);
   /* Pico's own switch margin would push it away from the list it governs. */
   margin-bottom: var(--pico-form-element-spacing-vertical);
 }
-.gif-toggle input {
+.setting-toggle input {
   margin-bottom: 0;
 }
 

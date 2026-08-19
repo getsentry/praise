@@ -3,6 +3,7 @@ import {
   DEFAULT_APPROVE_COMMENT,
   DEFAULT_APPROVE_GIFS,
   DEFAULT_COMMENTS,
+  STORED_KEYS,
   type StoredSettings,
 } from '../lib/seed-defaults';
 
@@ -14,6 +15,7 @@ const SEEDED = {
   approveComment: 'Nice one',
   approveGifs: ['https://media.giphy.com/media/abc/giphy.gif'],
   approveGifsEnabled: false,
+  approveQuotesEnabled: false,
 };
 
 describe('DEFAULT_APPROVE_COMMENT / DEFAULT_COMMENTS / DEFAULT_APPROVE_GIFS', () => {
@@ -45,11 +47,18 @@ describe('computeSeed', () => {
   test('seeds every key for empty storage', () => {
     const patch = computeSeed({});
 
-    expect(Object.keys(patch).sort()).toEqual(['approveComment', 'approveGifs', 'approveGifsEnabled', 'comments']);
+    expect(Object.keys(patch).sort()).toEqual([
+      'approveComment',
+      'approveGifs',
+      'approveGifsEnabled',
+      'approveQuotesEnabled',
+      'comments',
+    ]);
     expect(patch.approveComment).toBe(DEFAULT_APPROVE_COMMENT);
     expect(patch.comments).toEqual(DEFAULT_COMMENTS);
     expect(patch.approveGifs).toEqual(DEFAULT_APPROVE_GIFS);
     expect(patch.approveGifsEnabled).toBe(true);
+    expect(patch.approveQuotesEnabled).toBe(false);
   });
 
   test('seeds nothing when every key already holds a usable value', () => {
@@ -71,6 +80,7 @@ describe('computeSeed', () => {
       comments: ['great'],
       approveGifs: SEEDED.approveGifs,
       approveGifsEnabled: false,
+      approveQuotesEnabled: false,
     });
 
     expect(Object.keys(patch)).toEqual(['approveComment']);
@@ -91,7 +101,12 @@ describe('computeSeed', () => {
       { approveComment: ['LGTM'], comments: 42 },
       { approveComment: {}, comments: {} },
     ] as StoredSettings[]) {
-      const patch = computeSeed({ approveGifs: SEEDED.approveGifs, approveGifsEnabled: false, ...stored });
+      const patch = computeSeed({
+        approveGifs: SEEDED.approveGifs,
+        approveGifsEnabled: false,
+        approveQuotesEnabled: false,
+        ...stored,
+      });
 
       expect(Object.keys(patch).sort()).toEqual(['approveComment', 'comments']);
       expect(patch.approveComment).toBe(DEFAULT_APPROVE_COMMENT);
@@ -158,7 +173,12 @@ describe('computeSeed', () => {
 });
 
 describe('computeSeed / migrating the old reviews list', () => {
-  const rest = { comments: ['great'], approveGifs: SEEDED.approveGifs, approveGifsEnabled: false };
+  const rest = {
+    comments: ['great'],
+    approveGifs: SEEDED.approveGifs,
+    approveGifsEnabled: false,
+    approveQuotesEnabled: false,
+  };
 
   test('carries a customised praise over from the old list', () => {
     const patch = computeSeed({ reviews: ['Beautiful work ✨', 'Ship it'], ...rest });
@@ -196,7 +216,7 @@ describe('computeSeed / migrating the old reviews list', () => {
 });
 
 describe('computeSeed / gif settings', () => {
-  const populated = { approveComment: 'LGTM', comments: ['great'] };
+  const populated = { approveComment: 'LGTM', comments: ['great'], approveQuotesEnabled: false };
 
   test('seeds the gif list when it is missing or not a list', () => {
     for (const stored of [{}, { approveGifs: 'nope' }, { approveGifs: null }, { approveGifs: 42 }]) {
@@ -250,5 +270,62 @@ describe('computeSeed / gif settings', () => {
 
       expect(patch.approveGifsEnabled).toBe(true);
     }
+  });
+});
+
+describe('computeSeed / the quotes toggle', () => {
+  const populated = {
+    approveComment: 'LGTM',
+    comments: ['great'],
+    approveGifs: SEEDED.approveGifs,
+    approveGifsEnabled: false,
+  };
+
+  /** Opt-in: an update must not silently replace an approval comment in use. */
+  test('seeds the toggle to off when it is missing', () => {
+    const patch = computeSeed({ ...populated });
+
+    expect(Object.keys(patch)).toEqual(['approveQuotesEnabled']);
+    expect(patch.approveQuotesEnabled).toBe(false);
+  });
+
+  /**
+   * The polarity is inverted from gifs, so this is the case that matters: a
+   * deliberate `true` must not be seeded back to the off default on update.
+   */
+  test('leaves the toggle alone when it is already true', () => {
+    const patch = computeSeed({ ...populated, approveQuotesEnabled: true });
+
+    expect(patch.approveQuotesEnabled).toBeUndefined();
+    expect(Object.keys(patch)).toEqual([]);
+  });
+
+  test('leaves the toggle alone when it is already false', () => {
+    const patch = computeSeed({ ...populated, approveQuotesEnabled: false });
+
+    expect(patch.approveQuotesEnabled).toBeUndefined();
+    expect(Object.keys(patch)).toEqual([]);
+  });
+
+  test('reseeds the toggle when it holds a non-boolean', () => {
+    for (const value of ['false', 0, 1, null, {}]) {
+      const patch = computeSeed({ ...populated, approveQuotesEnabled: value });
+
+      expect(patch.approveQuotesEnabled).toBe(false);
+    }
+  });
+});
+
+describe('STORED_KEYS', () => {
+  /**
+   * The bug this guards: seeding runs on update too, so a key the reader omits
+   * arrives as `undefined` and gets seeded again, overwriting whatever the user
+   * had chosen.
+   */
+  test('covers every key computeSeed writes, so an update re-seeds nothing', () => {
+    const fresh: Record<string, unknown> = computeSeed({});
+    const readBack = Object.fromEntries(STORED_KEYS.filter(key => key in fresh).map(key => [key, fresh[key]]));
+
+    expect(computeSeed(readBack)).toEqual({});
   });
 });

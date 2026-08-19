@@ -1,7 +1,8 @@
 import { setFieldText } from 'text-field-edit';
 import { submitApproval } from './lib/approve';
-import { composeApprove, composePraise } from './lib/compose-praise';
+import { approveBodies, composeApprove, composePraise } from './lib/compose-praise';
 import { isPullRequestUrl } from './lib/pr-url';
+import { APPROVE_QUOTES } from './lib/quotes';
 import { submitReviewComment } from './lib/review-comment';
 import observe from './lib/selector-observer';
 import { findInsertionPoint, markdownTextarea, praiseContext } from './lib/selectors';
@@ -19,6 +20,7 @@ let commentPraises: string[] = [];
 let approveComment = '';
 let approveGifs: string[] = [];
 let approveGifsEnabled = true;
+let approveQuotesEnabled = false;
 
 /**
  * The text we last wrote into a given textarea.
@@ -47,7 +49,13 @@ watchPraises();
 syncObserver();
 watchNavigation();
 
-type Stored = { approveComment: string; comments: string[]; approveGifs: string[]; approveGifsEnabled: boolean };
+type Stored = {
+  approveComment: string;
+  comments: string[];
+  approveGifs: string[];
+  approveGifsEnabled: boolean;
+  approveQuotesEnabled: boolean;
+};
 
 function loadPraises(): void {
   chrome.storage.sync.get<Stored>(
@@ -56,12 +64,14 @@ function loadPraises(): void {
       comments: [],
       approveGifs: [],
       approveGifsEnabled: true,
+      approveQuotesEnabled: false,
     },
     (items: Stored) => {
       approveComment = items.approveComment;
       commentPraises = items.comments;
       approveGifs = items.approveGifs;
       approveGifsEnabled = items.approveGifsEnabled;
+      approveQuotesEnabled = items.approveQuotesEnabled;
     },
   );
 }
@@ -86,6 +96,11 @@ function watchPraises(): void {
       // Anything that is not an explicit `false` leaves gifs on, matching the
       // seeded default.
       approveGifsEnabled = changes.approveGifsEnabled.newValue !== false;
+    }
+    if (changes.approveQuotesEnabled) {
+      // Anything that is not an explicit `true` leaves quotes off, matching the
+      // seeded default.
+      approveQuotesEnabled = changes.approveQuotesEnabled.newValue === true;
     }
   });
 }
@@ -284,8 +299,9 @@ async function praise(textarea: HTMLTextAreaElement): Promise<void> {
  */
 async function approve(textarea: HTMLTextAreaElement): Promise<void> {
   const gifs = approveGifsEnabled ? approveGifs : [];
+  const quotes = approveQuotesEnabled ? APPROVE_QUOTES : [];
 
-  write(textarea, composeApprove(approveComment, gifs, textarea.value));
+  write(textarea, composeApprove(approveBodies(approveComment, quotes), gifs, textarea.value));
 
   await submitApproval(textarea);
 }

@@ -3,7 +3,13 @@ import { GifList } from './GifList';
 import { PraiseList } from './PraiseList';
 import { PraiseText } from './PraiseText';
 
-type Stored = { approveComment: string; comments: string[]; approveGifs: string[]; approveGifsEnabled: boolean };
+type Stored = {
+  approveComment: string;
+  comments: string[];
+  approveGifs: string[];
+  approveGifsEnabled: boolean;
+  approveQuotesEnabled: boolean;
+};
 
 export const Options = () => {
   const [approveComment, setApproveComment] = useState('');
@@ -12,6 +18,7 @@ export const Options = () => {
   // Matches the seeding default, so the checkbox does not flicker off before
   // storage answers.
   const [gifsEnabled, setGifsEnabled] = useState(true);
+  const [quotesEnabled, setQuotesEnabled] = useState(false);
 
   useEffect(() => {
     chrome.storage.sync.get<Stored>(
@@ -20,12 +27,14 @@ export const Options = () => {
         comments: [],
         approveGifs: [],
         approveGifsEnabled: true,
+        approveQuotesEnabled: false,
       },
       items => {
         setApproveComment(items.approveComment);
         setComments(items.comments);
         setApproveGifs(items.approveGifs);
         setGifsEnabled(items.approveGifsEnabled);
+        setQuotesEnabled(items.approveQuotesEnabled);
       },
     );
   }, []);
@@ -50,6 +59,11 @@ export const Options = () => {
     void chrome.storage.sync.set({ approveGifsEnabled: next });
   }
 
+  function quotesEnabledChanged(next: boolean) {
+    setQuotesEnabled(next);
+    void chrome.storage.sync.set({ approveQuotesEnabled: next });
+  }
+
   return (
     <>
       <PraiseText
@@ -58,10 +72,25 @@ export const Options = () => {
         value={approveComment}
         onChange={approveCommentChanged}
       />
+      {/* Nested under PR Approval: a quote sits under the approval comment. */}
+      <section className="praise-list setting-section">
+        <h3>Quotes</h3>
+        <label className="setting-toggle">
+          <input
+            type="checkbox"
+            role="switch"
+            checked={quotesEnabled}
+            onChange={event => {
+              quotesEnabledChanged(event.target.checked);
+            }}
+          />
+          Add a random quote below your PR Approval Comment
+        </label>
+      </section>
       {/* Nested under PR Approval: gifs only ever accompany a review. */}
-      <section className="praise-list gif-section">
+      <section className="praise-list setting-section">
         <h3>GIFs</h3>
-        <label className="gif-toggle">
+        <label className="setting-toggle">
           <input
             type="checkbox"
             role="switch"
