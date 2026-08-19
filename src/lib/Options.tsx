@@ -31,6 +31,9 @@ export const Options = () => {
   }
 
   function split(value: string): string[] {
+    // `''.split(/\n/)` yields `['']`, which would store one empty praise for
+    // an empty textarea. An empty box means no praises at all.
+    if (value === '') return [];
     return value.split(/\n/);
   }
 
