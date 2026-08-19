@@ -153,12 +153,29 @@ const editorBoundary = [...reviewDialog, ...diffCommentEditor, 'form'];
 export function findInsertionPoint(textarea: HTMLTextAreaElement): InsertionPoint | undefined {
   const boundary = editorBoundary.join(',');
   let element: HTMLElement | null = textarea.parentElement;
+  // The inline editor keeps Cancel in a footer that is a *sibling* of the editor
+  // box, so the boundary never contains it. One step past is enough to reach it,
+  // and it has to be the last: climbing on from there is how the walk reaches a
+  // neighbouring editor, or the page's own toolbar, and takes the wrong Cancel.
+  let steppedOut = false;
 
   for (let depth = 0; element && depth < 12; depth++) {
     const anchor = findAnchorButton(element);
     if (!anchor?.parentElement) {
-      // Search the boundary itself, then stop.
-      element = element.matches(boundary) ? null : element.parentElement;
+      if (steppedOut) {
+        return undefined;
+      }
+
+      if (element.matches(boundary)) {
+        // Only into a wrapper holding this editor alone -- a shared one would
+        // put a neighbour's Cancel in reach.
+        const parent = element.parentElement;
+        if (!parent || parent.querySelectorAll('textarea').length > 1) {
+          return undefined;
+        }
+        steppedOut = true;
+      }
+      element = element.parentElement;
       continue;
     }
 

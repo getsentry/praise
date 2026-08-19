@@ -47,7 +47,15 @@ module.exports = {
   },
   plugins: [
     new CopyPlugin({
-      patterns: [{ from: '.', to: '../', context: 'public' }],
+      patterns: [
+        { from: '.', to: '../', context: 'public' },
+        {
+          // The extension CSP forbids loading CSS from a CDN, so Pico
+          // must ship inside the bundle rather than being linked remotely.
+          from: path.join(__dirname, '..', 'node_modules/@picocss/pico/css/pico.classless.min.css'),
+          to: '../pico.min.css',
+        },
+      ],
     }),
   ],
 };

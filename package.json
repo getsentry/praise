@@ -27,6 +27,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@picocss/pico": "^2.1.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-textarea-autosize": "^8.5.9",

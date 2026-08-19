@@ -1,0 +1,22 @@
+/*
+ * Pico scales its root font size up with the viewport, reaching 131.25% past
+ * 1536px. That suits prose, not a settings form -- on a wide monitor the page
+ * renders at ~21px base. Pin it so the form stays the same size everywhere.
+ */
+:root {
+  --pico-font-size: 100%;
+}
+
+/*
+ * Pico caps the container at 950px for a two-field form. The selector has to
+ * match Pico's own `body > main` -- a bare `main` loses on specificity no
+ * matter where it sits in the cascade.
+ */
+body > main {
+  max-width: 40rem;
+}
+
+/* Pico's h2 is display-sized (1.75rem); these are field labels, not headlines. */
+h2 {
+  --pico-font-size: 1.25rem;
+}
