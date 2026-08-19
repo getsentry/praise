@@ -1,14 +1,10 @@
 # PRaise
 
-Chrome Extension for giving praise to GitHub PRs with one click.
-
-**Reviews**
-
-![PRaise Review Demo](./demo-review.gif)
-
-**Comments**
-
-![PRaise Comment Demo](./demo-comment.gif)
+Chrome extension for praising GitHub pull requests in one click. It adds an
+Approve button to the review dialog, which fills in your approval comment with a
+random GIF and submits the review, and a Praise button to inline diff comments,
+which drops in a random thank you. Both texts and the GIF list are editable on
+the options page.
 
 ## Installation
 
