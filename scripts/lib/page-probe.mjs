@@ -52,14 +52,19 @@ export const inspectExpression = `(() => {
   return JSON.stringify({
     buttonFound: Boolean(button),
     buttonLabel: button ? caption(button) : null,
-    // The next sibling *or* the element containing Cancel: the extension inserts
-    // before whatever \`findInsertionPoint\` picked, and that climbs to a wrapper
-    // when Primer wraps the anchor -- so requiring Cancel itself would fail a
-    // correct placement.
-    beforeCancel: Boolean(
-      button && cancel && button.nextElementSibling
-        && (button.nextElementSibling === cancel || button.nextElementSibling.contains(cancel)),
-    ),
+    // Cancel, or the chain of single-child wrappers Primer put around it.
+    //
+    // Mirrors \`findInsertionPoint\`, which climbs only while an ancestor has one
+    // child -- so this unwraps the same way. \`contains\` would be wrong here: it
+    // also matches a whole footer column beside the button, which is exactly the
+    // full-width misplacement this check exists to fail.
+    beforeCancel: (() => {
+      let sibling = button?.nextElementSibling;
+      while (sibling && sibling !== cancel && sibling.children.length === 1) {
+        sibling = sibling.firstElementChild;
+      }
+      return Boolean(button && cancel && sibling === cancel);
+    })(),
     insertionPoint: cancel
       ? {
           rowTag: cancel.parentElement?.tagName ?? null,
