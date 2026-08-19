@@ -263,3 +263,60 @@ export function findSubmitReviewButton(textarea: HTMLTextAreaElement): HTMLButto
 
   return undefined;
 }
+
+/**
+ * Captions GitHub gives the button that files a comment as part of a review.
+ *
+ * "Start a review" with none pending, "Add review comment" once one is -- so
+ * clicking whichever is present needs no knowledge of the review state; GitHub's
+ * own caption carries it.
+ *
+ * An allowlist, not "anything except single comment": the editor's primary
+ * button is captioned plainly "Comment" and posts a standalone comment, so a
+ * caption we do not recognise has to be left alone rather than pressed.
+ *
+ * Anchored rather than exact, like the review dialog's Submit: captions here
+ * carry a keyboard shortcut too.
+ */
+const reviewCommentLabels = [/^start a review/i, /^add review comment/i];
+
+/**
+ * Whether Primer is rendering this button as unavailable.
+ *
+ * An empty editor's submit buttons arrive marked this way rather than
+ * `disabled`, so the attribute is the only thing between us and clicking a
+ * button that silently does nothing.
+ */
+function inactive(button: HTMLButtonElement): boolean {
+  return button.dataset.inactive === 'true';
+}
+
+/**
+ * The inline editor's own review-comment button, if it is ready to be pressed.
+ *
+ * Scoped through `findInsertionPoint`, so it can only ever return a button from
+ * the same row our own button sits in -- the editor that let us in. Reaching
+ * wider is how a neighbouring editor's footer, or the diff toolbar, gets
+ * clicked.
+ *
+ * The review dialog is excluded outright: submitting a review there is the
+ * Approve button's job, and it needs a verdict chosen first.
+ */
+export function findReviewCommentButton(textarea: HTMLTextAreaElement): HTMLButtonElement | undefined {
+  if (praiseContext(textarea) !== 'comments') {
+    return undefined;
+  }
+
+  const point = findInsertionPoint(textarea);
+  if (!point) {
+    return undefined;
+  }
+
+  for (const button of point.row.querySelectorAll<HTMLButtonElement>('button')) {
+    if (!button.disabled && !inactive(button) && reviewCommentLabels.some(label => label.test(buttonLabel(button)))) {
+      return button;
+    }
+  }
+
+  return undefined;
+}

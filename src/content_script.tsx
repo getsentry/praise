@@ -2,6 +2,7 @@ import { setFieldText } from 'text-field-edit';
 import { submitApproval } from './lib/approve';
 import { composeApprove, composePraise } from './lib/compose-praise';
 import { isPullRequestUrl } from './lib/pr-url';
+import { submitReviewComment } from './lib/review-comment';
 import observe from './lib/selector-observer';
 import { findInsertionPoint, markdownTextarea, praiseContext } from './lib/selectors';
 
@@ -200,9 +201,8 @@ function addPraiseButton(textarea: HTMLTextAreaElement, attempt = 0): void {
       void approve(textarea);
     });
   } else {
-    // Gifs ride along with approve comments only; a diff comment stays plain text.
     button.addEventListener('click', () => {
-      setPraise(textarea, commentPraises, []);
+      void praise(textarea);
     });
 
     // Approve stays visible instead: typing your own text is exactly when it
@@ -268,14 +268,21 @@ function createButton(neighbour: HTMLElement, label: string): HTMLButtonElement 
 }
 
 /**
- * Sets a random praise, and its gif when there is one, on the textarea.
+ * Fills a diff comment box with a random praise and files it as part of a review.
  *
- * @param textarea The textarea to put the praise.
- * @param praises The praises to randomly pick.
- * @param gifs The gif urls to randomly pick. Empty means text only.
+ * Submitting only after a real write is what keeps an unconfigured praise list
+ * from posting a blank comment: `composePraise` yields `''` when there is
+ * nothing to say, and `write` reports having left the box alone.
+ *
+ * A failed submit is deliberately silent. The praise is still in the box, which
+ * is the same bargain Approve strikes when the verdict is out of reach: better a
+ * draft to finish by hand than a standalone comment nobody asked for.
  */
-function setPraise(textarea: HTMLTextAreaElement, praises: string[], gifs: string[]): void {
-  write(textarea, composePraise(praises, gifs, textarea.value));
+async function praise(textarea: HTMLTextAreaElement): Promise<void> {
+  // Gifs ride along with approve comments only; a diff comment stays plain text.
+  if (write(textarea, composePraise(commentPraises, [], textarea.value))) {
+    await submitReviewComment(textarea);
+  }
 }
 
 /**
@@ -293,10 +300,14 @@ async function approve(textarea: HTMLTextAreaElement): Promise<void> {
   await submitApproval(textarea);
 }
 
-/** Treats `''` as "leave the box as it is". */
-function write(textarea: HTMLTextAreaElement, newText: string): void {
+/**
+ * Treats `''` as "leave the box as it is".
+ *
+ * @returns Whether anything was written.
+ */
+function write(textarea: HTMLTextAreaElement, newText: string): boolean {
   if (newText === '') {
-    return;
+    return false;
   }
 
   lastWritten.set(textarea, newText);
@@ -305,6 +316,8 @@ function write(textarea: HTMLTextAreaElement, newText: string): void {
   // reverted on the next render. `setFieldText` writes via `execCommand`, which
   // fires a trusted `input` event React honours -- and keeps native undo.
   setFieldText(textarea, newText);
+
+  return true;
 }
 
 /**

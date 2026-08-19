@@ -1,4 +1,10 @@
-import { findApproveRadio, findInsertionPoint, findSubmitReviewButton, praiseContext } from '../lib/selectors';
+import {
+  findApproveRadio,
+  findInsertionPoint,
+  findReviewCommentButton,
+  findSubmitReviewButton,
+  praiseContext,
+} from '../lib/selectors';
 
 /**
  * Markup captured from a live PR page. The inline editor keeps Cancel in a
@@ -237,5 +243,174 @@ describe('the dialog as GitHub actually serves it', () => {
 
     expect(findApproveRadio(textarea)).toBeUndefined();
     expect(findSubmitReviewButton(textarea)).toBeUndefined();
+  });
+});
+
+/**
+ * The inline editor's footer, with whichever submit buttons GitHub offers.
+ *
+ * The caption on the review button is GitHub's own signal for review state --
+ * "Start a review" with none pending, "Add review comment" once one is -- so the
+ * fixtures vary that rather than any wrapper markup.
+ */
+function inlineEditorFooter(buttons: string): HTMLTextAreaElement {
+  document.body.innerHTML = `
+    <div id="wrapper">
+      <div class="AddCommentEditor-module__ConversationCommentBox__qxXdE">
+        <div class="MarkdownInput-module__inputWrapper__vOI3M">
+          <textarea data-component="Textarea" placeholder="Leave a comment"></textarea>
+        </div>
+      </div>
+      <div class="Footer-module__footer__asFN1">
+        <div class="Footer-module__childrenStyling__XjmP5">
+          <button>Cancel</button>
+          ${buttons}
+        </div>
+      </div>
+    </div>
+  `;
+
+  return document.querySelector('textarea')!;
+}
+
+describe('findReviewCommentButton', () => {
+  it('finds Start a review when no review is pending', () => {
+    const textarea = inlineEditorFooter('<button>Add single comment</button><button>Start a review</button>');
+
+    expect(findReviewCommentButton(textarea)?.textContent).toBe('Start a review');
+  });
+
+  it('finds Add review comment when a review is already in progress', () => {
+    const textarea = inlineEditorFooter('<button>Add single comment</button><button>Add review comment</button>');
+
+    expect(findReviewCommentButton(textarea)?.textContent).toBe('Add review comment');
+  });
+
+  /**
+   * The whole point of the feature: a praise goes out as part of a review or not
+   * at all, so a footer offering only a standalone comment yields nothing.
+   */
+  it('finds nothing when only a single comment is on offer', () => {
+    const textarea = inlineEditorFooter('<button>Add single comment</button>');
+
+    expect(findReviewCommentButton(textarea)).toBeUndefined();
+  });
+
+  /** A bare "Comment" posts a standalone comment too, despite the shorter caption. */
+  it('does not mistake a plain Comment button for a review comment', () => {
+    const textarea = inlineEditorFooter('<button>Comment</button>');
+
+    expect(findReviewCommentButton(textarea)).toBeUndefined();
+  });
+
+  it('ignores a disabled review button', () => {
+    const textarea = inlineEditorFooter('<button disabled>Start a review</button>');
+
+    expect(findReviewCommentButton(textarea)).toBeUndefined();
+  });
+
+  /**
+   * How an empty editor arrives: Primer marks the button unavailable with an
+   * attribute rather than `disabled`, so a `disabled` check alone would click a
+   * button that does nothing.
+   */
+  it('ignores a review button Primer has marked inactive', () => {
+    const textarea = inlineEditorFooter('<button data-inactive="true">Start a review</button>');
+
+    expect(findReviewCommentButton(textarea)).toBeUndefined();
+  });
+
+  /** Primer wraps each submit button in a loading div, so it is not a direct child of the row. */
+  it('finds a review button nested in its loading wrapper', () => {
+    const textarea = inlineEditorFooter(
+      '<div data-loading-wrapper="true"><button>Comment</button></div>' +
+        '<div data-loading-wrapper="true"><button>Start a review</button></div>',
+    );
+
+    expect(findReviewCommentButton(textarea)?.textContent).toBe('Start a review');
+  });
+
+  /** Reviews are the Approve button's job; its dialog must not be submitted here. */
+  it('finds nothing in the review dialog', () => {
+    expect(findReviewCommentButton(reviewDialogWithVerdicts())).toBeUndefined();
+  });
+
+  it('does not reach a neighbouring editor’s Start a review', () => {
+    document.body.innerHTML = `
+      <div id="files">
+        <div class="AddCommentEditor-module__Box"><textarea data-component="Textarea"></textarea></div>
+        <div><div class="AddCommentEditor-module__Box"><textarea id="other"></textarea></div>
+          <div class="Footer-module__footer"><button>Cancel</button><button>Start a review</button></div>
+        </div>
+      </div>
+    `;
+
+    expect(findReviewCommentButton(document.querySelector('textarea')!)).toBeUndefined();
+  });
+});
+
+/**
+ * The inline editor as GitHub actually serves it, captured with
+ * `npm run probe -- diff-comment` and trimmed.
+ *
+ * Keeps the two details a hand-written fixture gets wrong: the standalone
+ * comment is captioned plainly "Comment" rather than "Add single comment", and
+ * an empty editor's submit buttons are marked `data-inactive` rather than
+ * `disabled`.
+ */
+function capturedDiffEditor(inactive: boolean): HTMLTextAreaElement {
+  const mark = inactive ? 'data-inactive="true"' : '';
+
+  document.body.innerHTML = `
+    <div id="wrapper">
+      <div class="AddCommentEditor-module__ConversationCommentBox__qxXdE">
+        <textarea class="MarkdownInput-module__textArea__jjK6q" data-component="Textarea"></textarea>
+      </div>
+      <div class="Footer-module__footer__asFN1">
+        <div class="Footer-module__childrenStyling__XjmP5">
+          <button data-component="Button" type="button" class="prc-Button-ButtonBase-9n-Xk sentry-pr-praise-button">
+            <span data-component="text">Praise</span>
+          </button>
+          <button data-component="Button" type="button" data-variant="default">
+            <span data-component="text">Cancel</span>
+          </button>
+          <div data-loading-wrapper="true">
+            <button data-component="Button" type="button" ${mark} data-variant="default">
+              <span data-component="text">Comment</span>
+            </button>
+          </div>
+          <div data-loading-wrapper="true">
+            <button data-component="Button" type="button" ${mark} data-variant="primary">
+              <span data-component="text">Start a review</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return document.querySelector('textarea')!;
+}
+
+describe('the inline editor as GitHub actually serves it', () => {
+  it('finds Start a review once the editor has content', () => {
+    expect(findReviewCommentButton(capturedDiffEditor(false))?.textContent?.trim()).toBe('Start a review');
+  });
+
+  /** Clicking it would post a standalone comment, which is the one thing we must not do. */
+  it('never returns the plain Comment button', () => {
+    expect(findReviewCommentButton(capturedDiffEditor(false))?.dataset.variant).toBe('primary');
+  });
+
+  /** How the empty editor arrives, before the praise is written into it. */
+  it('finds nothing while both submit buttons are inactive', () => {
+    expect(findReviewCommentButton(capturedDiffEditor(true))).toBeUndefined();
+  });
+
+  /** Our own button sits in the same row and must never be mistaken for a submit. */
+  it('does not return our own Praise button', () => {
+    expect(findReviewCommentButton(capturedDiffEditor(false))?.classList.contains('sentry-pr-praise-button')).toBe(
+      false,
+    );
   });
 });
