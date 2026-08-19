@@ -263,3 +263,34 @@ export function findSubmitReviewButton(textarea: HTMLTextAreaElement): HTMLButto
 
   return undefined;
 }
+
+/**
+ * An allowlist, not "anything but single comment": the standalone button is
+ * captioned plainly "Comment", so an unrecognised caption must be left alone.
+ */
+const reviewCommentLabels = [/^start a review/i, /^add review comment/i];
+
+/** An empty editor marks its submit buttons this way rather than `disabled`. */
+function inactive(button: HTMLButtonElement): boolean {
+  return button.dataset.inactive === 'true';
+}
+
+/** Scoped through `findInsertionPoint`, so it cannot reach a neighbouring editor. */
+export function findReviewCommentButton(textarea: HTMLTextAreaElement): HTMLButtonElement | undefined {
+  if (praiseContext(textarea) !== 'comments') {
+    return undefined;
+  }
+
+  const point = findInsertionPoint(textarea);
+  if (!point) {
+    return undefined;
+  }
+
+  for (const button of point.row.querySelectorAll<HTMLButtonElement>('button')) {
+    if (!button.disabled && !inactive(button) && reviewCommentLabels.some(label => label.test(buttonLabel(button)))) {
+      return button;
+    }
+  }
+
+  return undefined;
+}
