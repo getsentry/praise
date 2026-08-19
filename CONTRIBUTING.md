@@ -34,6 +34,11 @@ A pre-commit hook automatically formats and fixes staged files. To skip it:
 git commit --no-verify
 ```
 
+### Comments
+
+- Do not add comments to internal code that merely restate what the code does
+- Comment only to explain non-obvious _why_ (rationale, workaround, gotcha)
+
 ## Import as Visual Studio Code project
 
 ...

@@ -35,6 +35,9 @@
   "devDependencies": {
     "@swc/core": "^1.16.0",
     "@swc/jest": "^0.2.39",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.5",
     "@types/chrome": "^0.2.6",
     "@types/jest": "^30.0.0",
     "@types/react": "^19.2.18",
@@ -42,6 +45,7 @@
     "copy-webpack-plugin": "^14.0.0",
     "husky": "^9",
     "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
     "lint-staged": "^17",
     "npm-run-all2": "^9.0.3",
     "oxfmt": "^0.63",
