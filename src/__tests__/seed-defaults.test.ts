@@ -1,8 +1,8 @@
 import { computeSeed, DEFAULT_COMMENTS, DEFAULT_REVIEWS, type StoredSettings } from '../lib/seed-defaults';
 
 describe('DEFAULT_REVIEWS / DEFAULT_COMMENTS', () => {
-  test('DEFAULT_REVIEWS holds the four canonical review bodies', () => {
-    expect(DEFAULT_REVIEWS).toEqual(['LGTM 🚀', 'Ship it 🚢', 'RSLGTM 🏆', 'Good job 👏']);
+  test('DEFAULT_REVIEWS holds the single canonical review body', () => {
+    expect(DEFAULT_REVIEWS).toEqual(['LGTM 🚀']);
   });
 
   test('DEFAULT_COMMENTS holds ten non-empty strings', () => {
