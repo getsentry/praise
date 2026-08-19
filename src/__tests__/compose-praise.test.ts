@@ -28,6 +28,21 @@ describe('composePraise', () => {
     );
   });
 
+  test('escapes backslashes in the alt text', () => {
+    const praise = String.raw`Back\slash`;
+    const alt = String.raw`Back\\slash`;
+
+    expect(composePraise([praise], [GIF], '', pickSequence(0))).toBe(`${praise}\n\n![${alt}](${GIF})`);
+  });
+
+  /** Escaping the brackets alone would let this backslash swallow the escape. */
+  test('a backslash before a bracket cannot defeat the bracket escape', () => {
+    const praise = String.raw`Nice \[work]`;
+    const alt = String.raw`Nice \\\[work\]`;
+
+    expect(composePraise([praise], [GIF], '', pickSequence(0))).toBe(`${praise}\n\n![${alt}](${GIF})`);
+  });
+
   test('picks text and gif independently from the random source', () => {
     const result = composePraise(['first', 'second'], [GIF, OTHER_GIF], '', pickSequence(0.9, 0));
 

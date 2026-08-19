@@ -7,9 +7,13 @@ const MAX_ATTEMPTS = 10;
 /**
  * Brackets would close the image's alt text early and leave the rest of the
  * praise as literal markdown, so hand them to the renderer escaped.
+ *
+ * Backslashes go first, and for the same reason: escaping only the brackets
+ * lets a backslash already in the praise consume the one we add, handing the
+ * renderer the bare bracket we meant to defuse.
  */
 function escapeAlt(text: string): string {
-  return text.replace(/[[\]]/g, '\\$&');
+  return text.replace(/[\\[\]]/g, '\\$&');
 }
 
 function pick<T>(items: T[], random: () => number): T {
