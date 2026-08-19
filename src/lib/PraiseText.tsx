@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-type Props = { label: string; value: string; onChange: (value: string) => void };
+type Props = { heading: string; label: string; value: string; onChange: (value: string) => void };
 
 /**
  * Single-value counterpart to `PraiseList`. Purely presentational: it never
@@ -10,7 +10,7 @@ type Props = { label: string; value: string; onChange: (value: string) => void }
  * caps writes per minute, and typing a praise would spend that budget on
  * intermediate values nobody wants saved.
  */
-export const PraiseText = ({ label, value, onChange }: Props) => {
+export const PraiseText = ({ heading, label, value, onChange }: Props) => {
   const [draft, setDraft] = useState(value);
 
   // The stored value lands a tick after mount, so the draft has to follow it.
@@ -41,10 +41,11 @@ export const PraiseText = ({ label, value, onChange }: Props) => {
 
   return (
     <section className="praise-list">
-      <h2>{label}</h2>
+      <h2>{heading}</h2>
+      <label htmlFor="praise-text-input">{label}</label>
       <input
+        id="praise-text-input"
         className="praise-add"
-        aria-label={label}
         value={draft}
         onChange={event => {
           setDraft(event.target.value);
