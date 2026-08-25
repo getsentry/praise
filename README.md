@@ -1,4 +1,4 @@
-# PRaise
+# PRaise PR
 
 Chrome extension for praising GitHub pull requests in one click. It adds an
 Approve button to the review dialog, which fills in your approval comment with a
